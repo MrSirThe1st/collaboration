@@ -1,0 +1,15 @@
+export const ROLES = [
+  { id: "full_stack_developer", name: "Full Stack Developer" },
+  { id: "frontend_developer", name: "Frontend Developer" },
+  { id: "backend_developer", name: "Backend Developer" },
+  { id: "devops_engineer", name: "DevOps Engineer" },
+  { id: "data_scientist", name: "Data Scientist" },
+  { id: "machine_learning_engineer", name: "Machine Learning Engineer" },
+  { id: "ux_ui_designer", name: "UX/UI Designer" },
+  { id: "qa_engineer", name: "QA Engineer" },
+  { id: "systems_administrator", name: "Systems Administrator" },
+  { id: "database_administrator", name: "Database Administrator" },
+  { id: "cloud_engineer", name: "Cloud Engineer" },
+  { id: "security_engineer", name: "Security Engineer" },
+  { id: "mobile_developer", name: "Mobile Developer" },
+];
