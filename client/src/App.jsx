@@ -3,18 +3,21 @@ import Navbar from "./components/shared/Navbar";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
 import Home from "./components/Home";
+import Group from "./components/admin/group";
 // import Jobs from "./components/Jobs";
 // import Browse from "./components/Browse";
 import Profile from "./components/Profile";
 // import JobDescription from "./components/JobDescription";
 // import Companies from "./components/admin/Companies";
+
+import GroupCreate from "./components/admin/GroupCreate";
+import GroupSetup from "./components/admin/GroupSetup";
 // import CompanyCreate from "./components/admin/CompanyCreate";
 // import CompanySetup from "./components/admin/CompanySetup";
 // import AdminJobs from "./components/admin/AdminJobs";
 // import PostJob from "./components/admin/PostJob";
 // import Applicants from "./components/admin/Applicants";
 // import ProtectedRoute from "./components/admin/ProtectedRoute";
-
 const appRouter = createBrowserRouter([
   {
     path: "/",
@@ -27,6 +30,18 @@ const appRouter = createBrowserRouter([
   {
     path: "/signup",
     element: <Signup />,
+  },
+  {
+    path: "/admin/create",
+    element: <GroupCreate />,
+  },
+  {
+    path: "/admin/group/:id",
+    element: <Group/>,
+  },
+  {
+    path: "/profile/:id",
+    element: <GroupSetup />,
   },
   // Uncomment when you have these pages created
   // {
@@ -55,7 +70,7 @@ const appRouter = createBrowserRouter([
   //   ),
   // },
   // {
-  //   path: "/admin/companies/create",
+  //   path: "/admin/profile/create",
   //   element: (
   //     <ProtectedRoute>
   //       <CompanyCreate />

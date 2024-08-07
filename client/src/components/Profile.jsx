@@ -1,10 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "./shared/Navbar";
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Contact, Mail, Pen } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Label } from "./ui/label";
+import { useNavigate } from "react-router-dom";
+import { Input } from "./ui/input";
+import GroupsTable from "./admin/groupsTable";
+import useGetAllGroups from "@/hooks/useGetAllGroups";
+import { useDispatch } from "react-redux";
+import { setSearchGroupByText } from "@/redux/groupSlice";
 // import AppliedJobTable from "./AppliedJobTable";
 import UpdateProfileDialog from "./UpdateProfileDialog";
 import { useSelector } from "react-redux";
@@ -15,9 +21,16 @@ const isResume = true;
 
 const Profile = () => {
   //   useGetAppliedJobs();
+  const dispatch = useDispatch();
+  useGetAllGroups();
+  const [input, setInput] = useState("");
   const [open, setOpen] = useState(false);
   const { user } = useSelector((store) => store.auth);
-  
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    dispatch(setSearchGroupByText(input));
+  }, [input]);
 
   return (
     <div>
@@ -82,6 +95,19 @@ const Profile = () => {
         <h1 className="font-bold text-lg my-5">Applied Jobs</h1>
         {/* Applied Job Table   */}
         {/* <AppliedJobTable /> */}
+      </div>
+
+      <div className="max-w-6xl mx-auto my-10">
+        <div className="flex items-center justify-between my-5">
+          <Input
+            className="w-fit"
+            placeholder="Filter by name"
+            onChange={(e) => setInput(e.target.value)}
+          />
+          <Button onClick={() => navigate("/admin/create")}>New Group</Button>
+        </div>
+        
+        <GroupsTable />
       </div>
       <UpdateProfileDialog open={open} setOpen={setOpen} />
     </div>

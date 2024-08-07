@@ -12,8 +12,9 @@ import {
   REGISTER,
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-// import companySlice from "./companySlice";
 // import applicationSlice from "./applicationSlice";
+import groupSlice from "./groupSlice";
+import { Group } from "lucide-react";
 
 const persistConfig = {
   key: "root",
@@ -24,7 +25,7 @@ const persistConfig = {
 const rootReducer = combineReducers({
   auth: authSlice,
   project: projectSlice,
-  //   company: companySlice,
+  group: groupSlice,
   //   application: applicationSlice,
 });
 
