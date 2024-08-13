@@ -7,9 +7,10 @@ import Group from "./components/admin/group";
 // import Jobs from "./components/Jobs";
 // import Browse from "./components/Browse";
 import Profile from "./components/Profile";
+import Groups from "./components/admin/groups";
 // import JobDescription from "./components/JobDescription";
 // import Companies from "./components/admin/Companies";
-
+import PostProject from "./components/admin/PostProject";
 import GroupCreate from "./components/admin/GroupCreate";
 import GroupSetup from "./components/admin/GroupSetup";
 // import CompanyCreate from "./components/admin/CompanyCreate";
@@ -37,12 +38,26 @@ const appRouter = createBrowserRouter([
   },
   {
     path: "/admin/group/:id",
-    element: <Group/>,
+    element: <Group />,
+  },
+  {
+    path: "/admin/group",
+    element: <Group />,
   },
   {
     path: "/profile/:id",
     element: <GroupSetup />,
   },
+  {
+    path: "/admin/projects/create",
+    element: <PostProject />,
+  },
+  // {
+  //   path: "/admin/groups",
+  //   element: (
+  //       <Groups />
+  //   ),
+  // },
   // Uncomment when you have these pages created
   // {
   //   path: "/jobs",

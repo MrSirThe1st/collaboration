@@ -53,13 +53,11 @@ const GroupCreate = () => {
           type="text"
           className="my-2"
           placeholder="JobHunt, Microsoft etc."
+          value={groupName || ""}
           onChange={(e) => setGroupName(e.target.value)}
         />
         <div className="flex items-center gap-2 my-10">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/profil")}
-          >
+          <Button variant="outline" onClick={() => navigate("/profil")}>
             Cancel
           </Button>
           <Button onClick={registerNewGroup}>Continue</Button>

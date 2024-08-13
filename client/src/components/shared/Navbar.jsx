@@ -2,13 +2,14 @@ import React from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { Avatar, AvatarImage } from "../ui/avatar";
-import { LogOut, User2 } from "lucide-react";
+import { LogOut, User2, Clock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { USER_API_END_POINT } from "@/utils/constant";
 import { setUser } from "@/redux/authSlice";
 import { toast } from "sonner";
+import { Badge } from "../ui/badge";
 
 const Navbar = () => {
   const { user } = useSelector((store) => store.auth);
@@ -30,6 +31,37 @@ const Navbar = () => {
       toast.error(error.response.data.message);
     }
   };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "available":
+        return "green";
+      case "busy":
+        return "orange";
+      case "away":
+        return "red";
+      default:
+        return "gray"; // Default color
+    }
+  };
+
+  const updateStatus = async (status) => {
+    try {
+      const res = await axios.put(
+        `${USER_API_END_POINT}/status`,
+        { status },
+        { withCredentials: true }
+      );
+      if (res.data.success) {
+        dispatch(setUser(res.data.user));
+        toast.success(res.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to update status.");
+    }
+  };
+
   return (
     <div className="bg-white">
       <div className="flex items-center justify-between mx-auto max-w-7xl h-16">
@@ -76,6 +108,13 @@ const Navbar = () => {
             </div>
           ) : (
             <Popover>
+              <Badge
+                className={`text-white font-bold`}
+                variant="dot"
+                style={{
+                  backgroundColor: getStatusColor(user?.status),
+                }}
+              />
               <PopoverTrigger asChild>
                 <Avatar className="cursor-pointer">
                   <AvatarImage
@@ -93,6 +132,13 @@ const Navbar = () => {
                         alt="@shadcn"
                       />
                     </Avatar>
+                    <Badge
+                      className={`text-white font-bold`}
+                      variant="dot"
+                      style={{
+                        backgroundColor: getStatusColor(user?.status),
+                      }}
+                    />
                     <div>
                       <h4 className="font-medium">{user?.fullname}</h4>
                       <p className="text-sm text-muted-foreground">
@@ -101,10 +147,38 @@ const Navbar = () => {
                     </div>
                   </div>
                   <div className="flex flex-col my-2 text-gray-600">
-                    {user &&  (
-                      <div className="flex w-fit items-center gap-2 cursor-pointer">
+                    <div className="flex w-full items-center gap-2 cursor-pointer">
+                      <Clock color="green" />
+                      <button
+                        onClick={() => updateStatus("available")}
+                        className="bg-transparent hover:bg-gray-200 text-black py-2 px-4 rounded-md w-32 h-10"
+                      >
+                        Available
+                      </button>
+                    </div>
+                    <div className="flex w-full items-center gap-2 cursor-pointer my-2">
+                      <Clock color="orange" />
+                      <button
+                        className="bg-transparent hover:bg-gray-200 text-black py-2 px-4 rounded-md w-32 h-10"
+                        onClick={() => updateStatus("busy")}
+                      >
+                        Busy
+                      </button>
+                    </div>
+                    <div className="flex w-full items-center gap-2 cursor-pointer">
+                      <Clock color="red" />
+                      <button
+                        className="bg-transparent hover:bg-gray-200 text-black py-2 px-4 rounded-md w-32 h-10"
+                        onClick={() => updateStatus("away")}
+                      >
+                        Away
+                      </button>
+                    </div>
+
+                    {user && (
+                      <div className="flex w-full items-center gap-2 cursor-pointer">
                         <User2 />
-                        <Button variant="link">
+                        <Button className="bg-transparent hover:bg-gray-200 text-black py-2 px-4 rounded-md w-32 h-10">
                           {" "}
                           <Link to="/profile">View Profile</Link>
                         </Button>
@@ -113,7 +187,10 @@ const Navbar = () => {
 
                     <div className="flex w-fit items-center gap-2 cursor-pointer">
                       <LogOut />
-                      <Button onClick={logoutHandler} variant="link">
+                      <Button
+                        onClick={logoutHandler}
+                        className="bg-transparent hover:bg-gray-200 text-black py-2 px-4 rounded-md w-32 h-10"
+                      >
                         Logout
                       </Button>
                     </div>

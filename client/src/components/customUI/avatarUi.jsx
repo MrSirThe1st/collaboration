@@ -46,9 +46,13 @@ const AvatarUi = ({
           onClick={handleAvatarClick}
         >
           <img
-            className="aspect-square h-full w-full"
+            className="object-cover w-full h-full"
             src={avatarUrl || "/02.png"}
             alt="Avatar"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/02.png";
+            }}
           />
         </span>
         <input

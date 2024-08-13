@@ -12,8 +12,6 @@ import { useNavigate } from "react-router-dom";
 import { setSearchedQuery } from "@/redux/projectSlice";
 import { PROFESSIONS } from "@/data/professions";
 
-
-
 const CategoryCarousel = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();

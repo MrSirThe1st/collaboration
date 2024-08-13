@@ -44,6 +44,7 @@ const Login = () => {
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.message);
+      dispatch(setLoading(false));
     } finally {
       dispatch(setLoading(false));
     }
@@ -83,9 +84,7 @@ const Login = () => {
               placeholder="patel@gmail.com"
             />
           </div>
-          <div className="flex items-center justify-between">
-            
-          </div>
+          <div className="flex items-center justify-between"></div>
           {loading ? (
             <Button className="w-full my-4">
               {" "}

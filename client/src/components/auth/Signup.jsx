@@ -39,34 +39,39 @@ const Signup = () => {
     setInput({ ...input, profession: profession });
   };
 
-  const submitHandler = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append("username", input.username);
-    formData.append("email", input.email);
-    formData.append("password", input.password);
-    formData.append("profession", input.profession);
-    if (input.file) {
-      formData.append("file", input.file);
-    }
+const submitHandler = async (e) => {
+  e.preventDefault();
+  const formData = new FormData();
+  formData.append("username", input.username);
+  formData.append("email", input.email);
+  formData.append("password", input.password);
+  formData.append("profession", input.profession);
+  if (input.file) {
+    formData.append("file", input.file);
+  }
 
-    try {
-      dispatch(setLoading(true));
-      const res = await axios.post(`${USER_API_END_POINT}/register`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
-      });
-      if (res.data.success) {
-        navigate("/login");
-        toast.success(res.data.message);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error(error.response.data.message);
-    } finally {
-      dispatch(setLoading(false));
+  try {
+    dispatch(setLoading(true));
+    const res = await axios.post(`${USER_API_END_POINT}/register`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+      withCredentials: true,
+    });
+    if (res.data.success) {
+      navigate("/login");
+      toast.success(res.data.message);
+    } else {
+      throw new Error(res.data.message || "Signup failed");
     }
-  };
+  } catch (error) {
+    console.log(error);
+    toast.error(
+      error.response?.data?.message || error.message || "An error occurred"
+    );
+  } finally {
+    dispatch(setLoading(false)); // Ensure loading is reset in both success and error scenarios
+  }
+};
+
 
   useEffect(() => {
     if (user) {

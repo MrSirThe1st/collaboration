@@ -4,25 +4,23 @@ import HeroSection from "./HeroSection";
 import CategoryCarousel from "./CategoryCarousel";
 import LatestProjects from "./LatestProjects";
 import Footer from "./shared/Footer";
-// import useGetAllJobs from "@/hooks/useGetAllJobs";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import useGetAllProjects from "@/hooks/useGetAllProjects";
 
 const Home = () => {
-  // useGetAllJobs();
+  useGetAllProjects();
   const { user } = useSelector((store) => store.auth);
   const navigate = useNavigate();
-  useEffect(() => {
-    if (user?.role === "recruiter") {
-      navigate("/admin/companies");
-    }
-  }, []);
+  // useEffect(() => {
+  //   navigate("/admin/groups");
+  // }, []);
   return (
     <div>
       <Navbar />
       <HeroSection />
       <CategoryCarousel />
-      <LatestProjects/>
+      <LatestProjects />
       <Footer />
     </div>
   );
