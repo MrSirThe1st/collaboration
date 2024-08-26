@@ -11,16 +11,15 @@ import GroupsTable from "./admin/groupsTable";
 import useGetAllGroups from "@/hooks/useGetAllGroups";
 import { useDispatch } from "react-redux";
 import { setSearchGroupByText } from "@/redux/groupSlice";
-// import AppliedJobTable from "./AppliedJobTable";
+import RequestedProjectTable from "./RequestedProjectTable";
 import UpdateProfileDialog from "./UpdateProfileDialog";
 import { useSelector } from "react-redux";
-// import useGetAppliedJobs from "@/hooks/useGetAppliedJobs";
-
+import useGetRequestedProjects from "@/hooks/useGetRequestedProjects";
 
 const isResume = true;
 
 const Profile = () => {
-  //   useGetAppliedJobs();
+  useGetRequestedProjects();
   const dispatch = useDispatch();
   useGetAllGroups();
   const [input, setInput] = useState("");
@@ -93,8 +92,7 @@ const Profile = () => {
       </div>
       <div className="max-w-4xl mx-auto bg-white rounded-2xl">
         <h1 className="font-bold text-lg my-5">Applied Jobs</h1>
-        {/* Applied Job Table   */}
-        {/* <AppliedJobTable /> */}
+        <RequestedProjectTable />
       </div>
 
       <div className="max-w-6xl mx-auto my-10">
@@ -106,7 +104,7 @@ const Profile = () => {
           />
           <Button onClick={() => navigate("/admin/create")}>New Group</Button>
         </div>
-        
+
         <GroupsTable />
       </div>
       <UpdateProfileDialog open={open} setOpen={setOpen} />

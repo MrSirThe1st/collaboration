@@ -4,21 +4,16 @@ import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
 import Home from "./components/Home";
 import Group from "./components/admin/group";
-// import Jobs from "./components/Jobs";
-// import Browse from "./components/Browse";
 import Profile from "./components/Profile";
 import Groups from "./components/admin/groups";
-// import JobDescription from "./components/JobDescription";
-// import Companies from "./components/admin/Companies";
 import PostProject from "./components/admin/PostProject";
 import GroupCreate from "./components/admin/GroupCreate";
 import GroupSetup from "./components/admin/GroupSetup";
-// import CompanyCreate from "./components/admin/CompanyCreate";
-// import CompanySetup from "./components/admin/CompanySetup";
-// import AdminJobs from "./components/admin/AdminJobs";
-// import PostJob from "./components/admin/PostJob";
-// import Applicants from "./components/admin/Applicants";
-// import ProtectedRoute from "./components/admin/ProtectedRoute";
+import Category from "./components/Category";
+import UserDetail from "./components/UserDetail";
+import ProjectDescription from "./components/ProjectDescription";
+import Requesters from "./components/admin/Requesters";
+import ProjectPage from "./components/admin/ProjectPage";
 const appRouter = createBrowserRouter([
   {
     path: "/",
@@ -52,78 +47,42 @@ const appRouter = createBrowserRouter([
     path: "/admin/projects/create",
     element: <PostProject />,
   },
+  {
+    path: "/description/:id",
+    element: <ProjectDescription />,
+  },
+  {
+    path: "/admin/groups/:id",
+    element: <GroupSetup />,
+  },
+  {
+    path: "/admin/projects/:id/requesters",
+    element: <Requesters />,
+  },
   // {
-  //   path: "/admin/groups",
-  //   element: (
-  //       <Groups />
-  //   ),
-  // },
-  // Uncomment when you have these pages created
-  // {
-  //   path: "/jobs",
-  //   element: <Jobs />,
-  // },
-  // {
-  //   path: "/description/:id",
-  //   element: <JobDescription />,
-  // },
-  // {
-  //   path: "/browse",
-  //   element: <Browse />,
+  //   path: "/home/Category",
+  //   element: <Category />,
   // },
   {
     path: "/profile",
     element: <Profile />,
   },
-  // Admin routes (requires ProtectedRoute and admin components)
-  // {
-  //   path: "/admin/companies",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Companies />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/admin/profile/create",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <CompanyCreate />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/admin/companies/:id",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <CompanySetup />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/admin/jobs",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <AdminJobs />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/admin/jobs/create",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <PostJob />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/admin/jobs/:id/applicants",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Applicants />
-  //     </ProtectedRoute>
-  //   ),
-  // },
+  {
+    path: "/profession/:profession",
+    element: <Category />,
+  },
+  {
+    path: "/user/:id",
+    element: <UserDetail />,
+  },
+  {
+    path: "/projectss/:id/requesters",
+    element: <Requesters />,
+  },
+  {
+    path: "/admin/projects/:id/page",
+    element: <ProjectPage />,
+  },
 ]);
 
 function App() {

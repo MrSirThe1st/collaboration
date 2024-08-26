@@ -12,9 +12,7 @@ const Home = () => {
   useGetAllProjects();
   const { user } = useSelector((store) => store.auth);
   const navigate = useNavigate();
-  // useEffect(() => {
-  //   navigate("/admin/groups");
-  // }, []);
+
   return (
     <div>
       <Navbar />

@@ -41,7 +41,7 @@ const Navbar = () => {
       case "away":
         return "red";
       default:
-        return "gray"; // Default color
+        return "green"; // Default color
     }
   };
 

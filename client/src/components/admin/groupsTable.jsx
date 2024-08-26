@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 const GroupsTable = () => {
   const { groups, searchGroupByText } = useSelector((store) => store.group);
   const [filterGroup, setFilterGroup] = useState(groups);
+  
   const navigate = useNavigate();
   useEffect(() => {
     const filteredGroup =
@@ -73,6 +74,7 @@ const GroupsTable = () => {
                       <Users className="w-4" />
                       <span>View</span>
                     </div>
+                    
                   </PopoverContent>
                 </Popover>
               </TableCell>

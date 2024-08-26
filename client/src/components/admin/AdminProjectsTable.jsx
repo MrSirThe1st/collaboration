@@ -46,9 +46,9 @@ const AdminProjectsTable = () => {
         <TableCaption>A list of your recent posted projects</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead>Group Name</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Date</TableHead>
+            <TableHead>is part of</TableHead>
+            <TableHead>project</TableHead>
+            <TableHead>created</TableHead>
             <TableHead className="text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
@@ -72,13 +72,28 @@ const AdminProjectsTable = () => {
                       <span>Edit</span>
                     </div>
                     <div
-                      onClick={() =>
-                        navigate(`/admin/projects/${project._id}/applicants`)
-                      }
+                      onClick={() => {
+                        const groupId = project?.group?._id;
+                        navigate(`/admin/projects/${project._id}/requesters`, {
+                          state: { groupId },
+                        });
+                      }}
                       className="flex items-center w-fit gap-2 cursor-pointer mt-2"
                     >
                       <Eye className="w-4" />
                       <span>Applicants</span>
+                    </div>
+                    <div
+                      onClick={() => {
+                        const groupId = project?.group?._id;
+                        navigate(`/admin/projects/${project._id}/page`, {
+                          state: { project },
+                        });
+                      }}
+                      className="flex items-center w-fit gap-2 cursor-pointer mt-2"
+                    >
+                      <Eye className="w-4" />
+                      <span>View</span>
                     </div>
                   </PopoverContent>
                 </Popover>

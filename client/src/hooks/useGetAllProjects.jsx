@@ -14,7 +14,7 @@ const useGetAllProjects = () => {
           `${PROJECT_API_END_POINT}/get?keyword=${searchedQuery}`,
           { withCredentials: true }
         );
-        console.log(res.data); // Add this line to debug
+        console.log(res.data);
         if (res.data.success) {
           dispatch(setAllProjects(res.data.projects));
         }
