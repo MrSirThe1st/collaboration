@@ -1,89 +1,81 @@
 import React, { useEffect, useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Edit2, MoreHorizontal, Users } from "lucide-react";
+import { Edit2, MoreHorizontal } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import useGetAllGroups from "@/hooks/useGetAllGroups";
 
-const GroupsTable = () => {
+const GroupsCardLayout = () => {
   const { groups, searchGroupByText } = useSelector((store) => store.group);
   const [filterGroup, setFilterGroup] = useState(groups);
-  
+  useGetAllGroups();
+
   const navigate = useNavigate();
+
   useEffect(() => {
     const filteredGroup =
       groups.length >= 0 &&
       groups.filter((group) => {
-        if (!searchGroupByText) {
-          return true;
-        }
+        if (!searchGroupByText) return true;
         return group?.name
           ?.toLowerCase()
           .includes(searchGroupByText.toLowerCase());
       });
     setFilterGroup(filteredGroup);
   }, [groups, searchGroupByText]);
+
   return (
-    <div>
-      <Table>
-        <TableCaption>A list of your recent registered groups</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Logo</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead className="text-right">Action</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filterGroup?.map((group) => (
-            <tr>
-              <TableCell>
-                <Avatar>
-                  <AvatarImage src={group.logo} />
-                </Avatar>
-              </TableCell>
-              <TableCell>{group.name}</TableCell>
-              <TableCell>{group.createdAt.split("T")[0]}</TableCell>
-              <TableCell className="text-right cursor-pointer">
-                <Popover>
-                  <PopoverTrigger>
-                    <MoreHorizontal />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-32">
-                    <div
-                      onClick={() => navigate(`/profile/${group._id}`)}
-                      className="flex items-center gap-2 w-fit cursor-pointer"
-                    >
-                      <Edit2 className="w-4" />
-                      <span>Edit</span>
-                    </div>
-                    <div
-                      onClick={() => navigate(`/admin/group/${group._id}`)}
-                      className="flex items-center gap-2 w-fit cursor-pointer"
-                    >
-                      <Users className="w-4" />
-                      <span>View</span>
-                    </div>
-                    
-                  </PopoverContent>
-                </Popover>
-              </TableCell>
-            </tr>
-          ))}
-        </TableBody>
-      </Table>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {filterGroup?.map((group) => (
+        <div
+          key={group._id}
+          className="flex shadow-lg rounded-lg overflow-hidden cursor-pointer"
+          onClick={() => navigate(`/admin/group/${group._id}`)}
+        >
+          {/* Left Section: cover and Name */}
+          <div className="bg-muted/40 flex flex-col items-center justify-center p-4 w-1/3">
+            <Avatar className="mb-4">
+              <AvatarImage src={group.cover} alt={group.name} />
+            </Avatar>
+          </div>
+
+          {/* Right Section: Additional Info and Actions */}
+          <div className="bg-white flex flex-col justify-between p-4 w-2/3">
+            <div>
+              <p className="text-sm text-gray-500 mb-2">{group.name}</p>
+              <p className="text-sm text-gray-500 mb-2">
+                Created At: {group.createdAt.split("T")[0]}
+              </p>
+              <p className="text-sm text-gray-500 mb-4">
+                Status: {group.status || "Active"}
+              </p>
+            </div>
+
+            <div className="flex justify-end">
+              <Popover>
+                <PopoverTrigger onClick={(e) => e.stopPropagation()}>
+                  <MoreHorizontal className="cursor-pointer" />
+                </PopoverTrigger>
+                <PopoverContent className="w-32">
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profile/${group._id}`);
+                    }}
+                    className="flex items-center gap-2 w-full cursor-pointer"
+                  >
+                    <Edit2 className="w-4" />
+                    <span>Edit</span>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
 
-export default GroupsTable;
+export default GroupsCardLayout;

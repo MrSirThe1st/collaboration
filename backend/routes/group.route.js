@@ -11,7 +11,7 @@ import { singleUpload } from "../middlewares/mutler.js";
 
 const router = express.Router();
 
-router.route("/register").post(isAuthenticated, createGroup);
+router.route("/register").post(isAuthenticated,singleUpload, createGroup);
 router.route("/get").get(isAuthenticated, getGroup);
 router.route("/get/:id").get(isAuthenticated, getGroupById);
 router.route("/update/:id").put(isAuthenticated, singleUpload, updateGroup);

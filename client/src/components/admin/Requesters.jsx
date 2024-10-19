@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import Navbar from "../shared/Navbar";
 import RequestersTable from "./RequestersTable";
 import axios from "axios";
 import { APPLICATION_API_END_POINT } from "@/utils/constant";
@@ -28,7 +27,6 @@ const Requesters = () => {
   }, []);
   return (
     <div>
-      <Navbar />
       <div className="max-w-7xl mx-auto">
         <h1 className="font-bold text-xl my-5">
           {requesters?.requests?.length} Requests

@@ -51,7 +51,6 @@ const Group = () => {
           delete newSelections[memberId];
           return newSelections;
         });
-        // Refresh data here if needed
       }
     } catch (error) {
       console.error("Error assigning member to project:", error);
@@ -99,7 +98,6 @@ const Group = () => {
 
   return (
     <div>
-      <Navbar />
       <div className="max-w-6xl mx-auto my-10">
         <div className="flex items-center justify-between my-5">
           <Input
@@ -116,7 +114,7 @@ const Group = () => {
           <div className="my-5">
             <div className="flex items-center space-x-4">
               <img
-                src={singleGroup.logo || "default-group-logo.png"}
+                src={singleGroup.cover || "default-group-logo.png"}
                 alt={singleGroup.name}
                 className="w-16 h-16 rounded-full"
               />
@@ -125,7 +123,7 @@ const Group = () => {
                 <p className="text-sm text-gray-500">
                   Status: {singleGroup.status}
                 </p>
-                <p className="mt-2">{singleGroup.description}</p>
+                <p className="mt-2 ">{singleGroup.description}</p>
               </div>
             </div>
           </div>

@@ -1,5 +1,4 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Navbar from "./components/shared/Navbar";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
 import Home from "./components/Home";
@@ -14,10 +13,25 @@ import UserDetail from "./components/UserDetail";
 import ProjectDescription from "./components/ProjectDescription";
 import Requesters from "./components/admin/Requesters";
 import ProjectPage from "./components/admin/ProjectPage";
+import MessageContainer from "./components/messages/MessageContainer";
+import { SocketContextProvider } from "../context/SocketContext.jsx";
+import Layout from "./components/Layout";
+import Invitations from "./components/Invitations";
+import InvitationsOut from "./components/InvitationsOut";
+import ProjectsRequested from "./components/ProjectsRequested";
+import Workspace from "./components/Workspace";
+import Layout2 from "./components/Layout2";
+import AllInvitations from "./components/AllInvitations";
+import Team from "./components/Team";
+
 const appRouter = createBrowserRouter([
   {
     path: "/",
-    element: <Home />,
+    element: (
+      <Layout>
+        <Home />
+      </Layout>
+    ),
   },
   {
     path: "/login",
@@ -26,6 +40,10 @@ const appRouter = createBrowserRouter([
   {
     path: "/signup",
     element: <Signup />,
+  },
+  {
+    path: "/messages/:id",
+    element: <MessageContainer />,
   },
   {
     path: "/admin/create",
@@ -59,13 +77,61 @@ const appRouter = createBrowserRouter([
     path: "/admin/projects/:id/requesters",
     element: <Requesters />,
   },
-  // {
-  //   path: "/home/Category",
-  //   element: <Category />,
-  // },
+  {
+    path: "/invitations",
+    element: (
+      <Layout>
+        <Invitations />
+      </Layout>
+    ),
+  },
+  {
+    path: "/invitationsOut",
+    element: (
+      <Layout>
+        <InvitationsOut />
+      </Layout>
+    ),
+  },
+  {
+    path: "/allInvitations",
+    element: (
+      <Layout>
+        <AllInvitations />
+      </Layout>
+    ),
+  },
   {
     path: "/profile",
-    element: <Profile />,
+    element: (
+      <Layout>
+        <Profile />
+      </Layout>
+    ),
+  },
+  {
+    path: "/projectsRequested",
+    element: (
+      <Layout>
+        <ProjectsRequested />
+      </Layout>
+    ),
+  },
+  {
+    path: "/workspace",
+    element: (
+      <Layout>
+        <Workspace />
+      </Layout>
+    ),
+  },
+  {
+    path: "/team",
+    element: (
+      <Layout>
+        <Team />
+      </Layout>
+    ),
   },
   {
     path: "/profession/:profession",
@@ -76,11 +142,15 @@ const appRouter = createBrowserRouter([
     element: <UserDetail />,
   },
   {
-    path: "/projectss/:id/requesters",
+    path: "/projects/:id/requesters",
     element: <Requesters />,
   },
   {
     path: "/admin/projects/:id/page",
+    element: <ProjectPage />,
+  },
+  {
+    path: "/projects/:id",
     element: <ProjectPage />,
   },
 ]);
@@ -88,7 +158,9 @@ const appRouter = createBrowserRouter([
 function App() {
   return (
     <div>
-      <RouterProvider router={appRouter} />
+      <SocketContextProvider>
+        <RouterProvider router={appRouter} />
+      </SocketContextProvider>
     </div>
   );
 }

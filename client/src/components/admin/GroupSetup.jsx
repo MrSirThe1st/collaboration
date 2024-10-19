@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Navbar from "../shared/Navbar";
 import { Button } from "../ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Label } from "../ui/label";
@@ -17,9 +16,6 @@ const GroupSetup = () => {
   useGetGroupById(params.id);
   const [input, setInput] = useState({
     name: "",
-    description: "",
-    website: "",
-    location: "",
     file: null,
   });
   const { singleGroup } = useSelector((store) => store.group);
@@ -39,9 +35,6 @@ const GroupSetup = () => {
     e.preventDefault();
     const formData = new FormData();
     formData.append("name", input.name);
-    formData.append("description", input.description);
-    formData.append("website", input.website);
-    formData.append("location", input.location);
     if (input.file) {
       formData.append("file", input.file);
     }
@@ -72,16 +65,15 @@ const GroupSetup = () => {
   useEffect(() => {
     setInput({
       name: singleGroup.name || "",
-      description: singleGroup.description || "",
-      website: singleGroup.website || "",
-      location: singleGroup.location || "",
+      // description: singleGroup.description || "",
+      // website: singleGroup.website || "",
+      // location: singleGroup.location || "",
       file: singleGroup.file || null,
     });
   }, [singleGroup]);
 
   return (
     <div>
-      <Navbar />
       <div className="max-w-xl mx-auto my-10">
         <form onSubmit={submitHandler}>
           <div className="flex items-center gap-5 p-8">
@@ -105,7 +97,7 @@ const GroupSetup = () => {
                 onChange={changeEventHandler}
               />
             </div>
-            <div>
+            {/* <div>
               <Label>Description</Label>
               <Input
                 type="text"
@@ -131,9 +123,9 @@ const GroupSetup = () => {
                 value={input.location}
                 onChange={changeEventHandler}
               />
-            </div>
+            </div> */}
             <div>
-              <Label>Logo</Label>
+              <Label>Cover</Label>
               <Input
                 type="file"
                 accept="image/*"
@@ -148,7 +140,7 @@ const GroupSetup = () => {
             </Button>
           ) : (
             <Button type="submit" className="w-full my-4">
-              Update
+              Create
             </Button>
           )}
         </form>

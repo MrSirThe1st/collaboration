@@ -1,6 +1,5 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import authSlice from "./authSlice";
-import projectSlice from "./projectSlice";
 import {
   persistStore,
   persistReducer,
@@ -14,18 +13,26 @@ import {
 import storage from "redux-persist/lib/storage";
 import requestSlice from "./requestSlice";
 import groupSlice from "./groupSlice";
+import invitationSlice from "./invitationSlice";
+import conversationSlice from "./conversationSlice";
+import projectSlice from "./projectSlice";
 
 const persistConfig = {
   key: "root",
   version: 1,
   storage,
+  blacklist: ["project"],
+  blacklist: ["group"],
+  // blacklist: ["invitation"],
 };
 
 const rootReducer = combineReducers({
   auth: authSlice,
-  project: projectSlice,
   group: groupSlice,
   request: requestSlice,
+  invitation: invitationSlice,
+  conversation: conversationSlice,
+  project: projectSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

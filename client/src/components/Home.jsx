@@ -7,6 +7,7 @@ import Footer from "./shared/Footer";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import useGetAllProjects from "@/hooks/useGetAllProjects";
+import SideBar from "./shared/SideBar";
 
 const Home = () => {
   useGetAllProjects();
@@ -15,11 +16,8 @@ const Home = () => {
 
   return (
     <div>
-      <Navbar />
       <HeroSection />
-      <CategoryCarousel />
       <LatestProjects />
-      <Footer />
     </div>
   );
 };

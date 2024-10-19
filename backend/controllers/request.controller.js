@@ -1,4 +1,3 @@
-
 import { Request } from "../models/request.model.js";
 import { Project } from "../models/project.model.js";
 
@@ -113,7 +112,6 @@ export const updateStatus = async (req, res) => {
         success: false,
       });
     }
-
 
     const request = await Request.findOne({ _id: requestId });
     if (!request) {

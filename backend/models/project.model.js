@@ -24,18 +24,19 @@ const projectSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    logo: {
+      type: String,
+    },
     members: [
       {
         user: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
         },
-        roles: [
-          {
-            type: String,
-            required: true,
-          },
-        ],
+        role: {
+          type: String,
+          required: true,
+        },
       },
     ],
     group: {
@@ -54,6 +55,53 @@ const projectSchema = new mongoose.Schema(
         ref: "Request",
       },
     ],
+    status: {
+      type: String,
+      enum: ["Planning", "In Progress", "On Hold", "Completed", "Cancelled"],
+      default: "Planning",
+    },
+    isOpen: {
+      type: Boolean,
+      default: true,
+    },
+    openPositions: [String],
+    startDate: Date,
+    endDate: Date,
+    tags: [String],
+    milestones: [
+      {
+        title: String,
+        description: String,
+        dueDate: Date,
+        completed: Boolean,
+      },
+    ],
+    skills: [String],
+    resources: [
+      {
+        name: String,
+        link: String,
+        description: String,
+      },
+    ],
+    communication: {
+      platform: String,
+      link: String,
+    },
+    budget: {
+      estimated: Number,
+      current: Number,
+      currency: String,
+    },
+    socialLinks: {
+      instagram: String,
+      twitter: String,
+      linkedin: String,
+      github: String,
+      website: String,
+    },
+    startDate: { type: Date, required: false }, // Start date of the project
+    endDate: { type: Date, required: false },
   },
   { timestamps: true }
 );

@@ -13,7 +13,7 @@ const groupSchema = new mongoose.Schema(
     website: {
       type: String,
     },
-    logo: {
+    cover: {
       type: String,
     },
     members: [

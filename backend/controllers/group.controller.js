@@ -5,23 +5,35 @@ import { User } from "../models/user.model.js";
 
 export const createGroup = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name } = req.body; 
+    const file = req.file; 
+
     if (!name) {
       return res.status(400).json({
-        message: "Company name is required.",
+        message: "Group name is required.",
         success: false,
       });
     }
+
     let group = await Group.findOne({ name });
     if (group) {
       return res.status(400).json({
-        message: "You can't register the same company.",
+        message: "You can't register the same group.",
         success: false,
       });
     }
+
+    let cover = null; 
+    if (file) {
+      const fileUri = getDataUri(file); 
+      const cloudResponse = await cloudinary.uploader.upload(fileUri.content); 
+      cover = cloudResponse.secure_url; 
+    }
+
     group = await Group.create({
       name,
       userId: req.id,
+      cover, 
     });
 
     return res.status(201).json({
@@ -31,9 +43,12 @@ export const createGroup = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Server error.",
+      success: false,
+    });
   }
 };
-
 export const getGroup = async (req, res) => {
   try {
     const userId = req.id;
@@ -52,7 +67,8 @@ export const getGroup = async (req, res) => {
     console.log(error);
   }
 };
-// get company by id
+
+
 export const getGroupById = async (req, res) => {
   try {
     const groupId = req.params.id;
@@ -88,9 +104,9 @@ export const updateGroup = async (req, res) => {
     const file = req.file;
     const fileUri = getDataUri(file);
     const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
-    const logo = cloudResponse.secure_url;
+    const cover = cloudResponse.secure_url;
 
-    const updateData = { name, description, location, logo };
+    const updateData = { name, description, location, cover };
 
     const group = await Group.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
@@ -111,7 +127,7 @@ export const updateGroup = async (req, res) => {
   }
 };
 
-// In your server-side route handler
+
 export const addMemberToGroup = async (req, res) => {
   try {
     const { groupId } = req.params;
@@ -121,7 +137,7 @@ export const addMemberToGroup = async (req, res) => {
     console.log("Group ID:", groupId);
     console.log("User ID:", userId);
 
-    // Add the user to the group's members list
+  
     const group = await Group.findByIdAndUpdate(
       groupId,
       { $addToSet: { members: userId } },
@@ -138,7 +154,7 @@ export const addMemberToGroup = async (req, res) => {
 
     console.log("Group found:", group.name);
 
-    // Add the group to the user's groups list
+   
     const userUpdateResult = await User.findByIdAndUpdate(userId, {
       $addToSet: { "profile.groups": groupId },
     });
@@ -160,7 +176,7 @@ export const addMemberToGroup = async (req, res) => {
       success: true,
     });
   } catch (error) {
-    console.error("Error in addMemberToGroup:", error); // More detailed logging
+    console.error("Error in addMemberToGroup:", error); 
     return res.status(500).json({
       message: "Server error.",
       success: false,

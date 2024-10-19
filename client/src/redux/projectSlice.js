@@ -9,6 +9,7 @@ const ProjectSlice = createSlice({
     searchProjectByText: "",
     allRequestedProjects: [],
     searchedQuery: "",
+    allSentInvitations: [],
   },
   reducers: {
     // actions
@@ -26,6 +27,9 @@ const ProjectSlice = createSlice({
     },
     setAllRequestedProjects: (state, action) => {
       state.allRequestedProjects = action.payload;
+    },
+    setAllSentInvitations: (state, action) => {
+      state.allSentInvitations = action.payload;
     },
     setSearchedQuery: (state, action) => {
       state.searchedQuery = action.payload;
@@ -55,6 +59,7 @@ export const {
   setAllAdminProjects,
   setSearchProjectByText,
   setAllRequestedProjects,
+  setAllSentInvitations,
   setSearchedQuery,
   updateProjectMember
 } = ProjectSlice.actions;

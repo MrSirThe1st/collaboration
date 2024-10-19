@@ -1,10 +1,41 @@
 import { Project } from "../models/project.model.js";
+import { User } from "../models/user.model.js";
+import getDataUri from "../utils/datauri.js";
+import cloudinary from "../utils/cloudinary.js";
 
 export const postProject = async (req, res) => {
   try {
-    const { title, description, requirements, maxTeamSize, location, groupId } =
-      req.body;
+    const {
+      title,
+      description,
+      requirements,
+      maxTeamSize,
+      location,
+      groupId,
+      status,
+      isOpen,
+      openPositions,
+      tags,
+      skills,
+      communicationPlatform,
+      communicationLink,
+      budgetEstimated,
+      budgetCurrent,
+      budgetCurrency,
+      socialInstagram,
+      socialTwitter,
+      socialLinkedin,
+      socialGithub,
+      socialWebsite,
+      startDate,
+      endDate,
+    } = req.body;
     const userId = req.id;
+
+    const file = req.file;
+    const fileUri = getDataUri(file);
+    const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+    const logo = cloudResponse.secure_url;
 
     if (
       !title ||
@@ -15,10 +46,11 @@ export const postProject = async (req, res) => {
       !groupId
     ) {
       return res.status(400).json({
-        message: "Somethin is missing.",
+        message: "Something is missing.",
         success: false,
       });
     }
+
     const project = await Project.create({
       title,
       description,
@@ -27,7 +59,26 @@ export const postProject = async (req, res) => {
       maxTeamSize,
       group: groupId,
       created_by: userId,
+      logo,
+      status,
+      isOpen,
+      openPositions: openPositions ? openPositions.split(",") : [],
+      tags: tags ? tags.split(",") : [],
+      skills: skills ? skills.split(",") : [],
+      communicationPlatform,
+      communicationLink,
+      budgetEstimated,
+      budgetCurrent,
+      budgetCurrency,
+      socialInstagram,
+      socialTwitter,
+      socialLinkedin,
+      socialGithub,
+      socialWebsite,
+      startDate,
+      endDate,
     });
+
     return res.status(201).json({
       message: "New project created successfully.",
       project,
@@ -35,6 +86,11 @@ export const postProject = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      success: false,
+      error: error.message,
+    });
   }
 };
 
@@ -49,18 +105,19 @@ export const getAllProjects = async (req, res) => {
           ],
         }
       : {};
-    console.log("Query:", query); // Log the query object
+    console.log("Query:", query);
     const projects = await Project.find(query)
       .populate("group")
       .sort({ createdAt: -1 });
-    console.log("Projects found:", projects.length); // Log the number of projects found
+    console.log("Projects found:", projects.length);
 
     if (!projects || projects.length === 0) {
-      return res.status(404).json({
-        message: "Projects not found.",
-        success: false,
+      return res.status(200).json({
+        projects: [], 
+        success: true,
       });
     }
+
     return res.status(200).json({
       projects,
       success: true,
@@ -91,6 +148,32 @@ export const getProjectById = async (req, res) => {
     return res.status(200).json({ project, success: true });
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const getUserById = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found.",
+        success: false,
+      });
+    }
+
+    return res.status(200).json({
+      user,
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      success: false,
+      error: error.message,
+    });
   }
 };
 
@@ -142,13 +225,10 @@ export const assignMemberToProject = async (req, res) => {
     );
 
     if (existingMember) {
-      // If the member exists, add the new role if it's not already there
-      if (!existingMember.roles.includes(role)) {
-        existingMember.roles.push(role);
-      }
+      // If the member exists, update the role
+      existingMember.role = role;
     } else {
-      // If the member doesn't exist, add them with the new role
-      project.members.push({ user: memberId, roles: [role] });
+      project.members.push({ user: memberId, role });
     }
 
     if (!project.requirements.includes(role)) {

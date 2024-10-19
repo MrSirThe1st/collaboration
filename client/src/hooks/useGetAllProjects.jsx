@@ -18,13 +18,12 @@ const useGetAllProjects = () => {
         if (res.data.success) {
           dispatch(setAllProjects(res.data.projects));
         }
-
       } catch (error) {
         console.log(error);
       }
     };
     fetchAllProjects();
-  }, []);
+  }, [searchedQuery, dispatch]);
 };
 
 export default useGetAllProjects;

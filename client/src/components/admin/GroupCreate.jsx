@@ -9,19 +9,28 @@ import { COMPANY_API_END_POINT } from "@/utils/constant";
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { setSingleGroup } from "@/redux/groupSlice";
+import { useSelector } from "react-redux";
 
 const GroupCreate = () => {
   const navigate = useNavigate();
-  const [groupName, setGroupName] = useState();
+  const [groupName, setGroupName] = useState("");
+  const [cover, setCover] = useState(null); // New state for cover
   const dispatch = useDispatch();
+
   const registerNewGroup = async () => {
     try {
+      const formData = new FormData(); // Create FormData object
+      formData.append("name", groupName);
+      if (cover) {
+        formData.append("file", cover); // Append cover file if available
+      }
+
       const res = await axios.post(
         `${COMPANY_API_END_POINT}/register`,
-        { name: groupName },
+        formData,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
           withCredentials: true,
         }
@@ -29,39 +38,48 @@ const GroupCreate = () => {
       if (res?.data?.success) {
         dispatch(setSingleGroup(res.data.group));
         toast.success(res.data.message);
-        const groupId = res?.data?.group?._id;
-        navigate(`/profile/${groupId}`);
+        navigate("/workspace");
       }
     } catch (error) {
       console.log(error);
+      toast.error("Failed to create group. Please try again."); // Error handling
     }
   };
-  return (
-    <div>
-      <Navbar />
-      <div className="max-w-4xl mx-auto">
-        <div className="my-10">
-          <h1 className="font-bold text-2xl">Your group Name</h1>
-          <p className="text-gray-500">
-            What would you like to give your group name? you can change this
-            later.
-          </p>
-        </div>
 
-        <Label>group Name</Label>
-        <Input
-          type="text"
-          className="my-2"
-          placeholder="JobHunt, Microsoft etc."
-          value={groupName || ""}
-          onChange={(e) => setGroupName(e.target.value)}
-        />
-        <div className="flex items-center gap-2 my-10">
-          <Button variant="outline" onClick={() => navigate("/profil")}>
-            Cancel
-          </Button>
-          <Button onClick={registerNewGroup}>Continue</Button>
-        </div>
+  const handleCoverChange = (e) => {
+    const file = e.target.files?.[0];
+    setCover(file); // Update cover state
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto">
+      <div className="my-10">
+        <h1 className="font-bold text-2xl">Your group Name</h1>
+        <p className="text-gray-500">You can change this later.</p>
+      </div>
+
+      <Label>Group Name</Label>
+      <Input
+        type="text"
+        className="my-2"
+        placeholder="Group Name"
+        value={groupName}
+        onChange={(e) => setGroupName(e.target.value)}
+      />
+
+      <Label>cover</Label>
+      <Input
+        type="file"
+        accept="image/*"
+        onChange={handleCoverChange}
+        className="my-2"
+      />
+
+      <div className="flex items-center gap-2 my-10">
+        <Button variant="outline" onClick={() => navigate("/profil")}>
+          Cancel
+        </Button>
+        <Button onClick={registerNewGroup}>Create</Button>
       </div>
     </div>
   );

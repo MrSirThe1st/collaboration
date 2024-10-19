@@ -2,14 +2,13 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../shared/Navbar";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { RadioGroup } from "../ui/radio-group";
 import { Button } from "../ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { USER_API_END_POINT } from "@/utils/constant";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
-import { setLoading } from "@/redux/authSlice";
+import { setLoading, setUser } from "@/redux/authSlice";
 import { Loader2 } from "lucide-react";
 import AvatarUi from "../customUI/avatarUi.jsx";
 
@@ -39,39 +38,56 @@ const Signup = () => {
     setInput({ ...input, profession: profession });
   };
 
-const submitHandler = async (e) => {
-  e.preventDefault();
-  const formData = new FormData();
-  formData.append("username", input.username);
-  formData.append("email", input.email);
-  formData.append("password", input.password);
-  formData.append("profession", input.profession);
-  if (input.file) {
-    formData.append("file", input.file);
-  }
-
-  try {
-    dispatch(setLoading(true));
-    const res = await axios.post(`${USER_API_END_POINT}/register`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-      withCredentials: true,
-    });
-    if (res.data.success) {
-      navigate("/login");
-      toast.success(res.data.message);
-    } else {
-      throw new Error(res.data.message || "Signup failed");
+  const submitHandler = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("username", input.username);
+    formData.append("email", input.email);
+    formData.append("password", input.password);
+    formData.append("profession", input.profession);
+    if (input.file) {
+      formData.append("file", input.file);
     }
-  } catch (error) {
-    console.log(error);
-    toast.error(
-      error.response?.data?.message || error.message || "An error occurred"
-    );
-  } finally {
-    dispatch(setLoading(false)); // Ensure loading is reset in both success and error scenarios
-  }
-};
 
+    try {
+      dispatch(setLoading(true));
+      const res = await axios.post(`${USER_API_END_POINT}/register`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      });
+      if (res.data.success) {
+        // After successful registration, immediately log in the user
+        const loginRes = await axios.post(
+          `${USER_API_END_POINT}/login`,
+          {
+            email: input.email,
+            password: input.password,
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        );
+
+        if (loginRes.data.success) {
+          dispatch(setUser(loginRes.data.user));
+          navigate("/");
+          toast.success("Account created and logged in successfully");
+        } else {
+          throw new Error("Login after signup failed");
+        }
+      } else {
+        throw new Error(res.data.message || "Signup failed");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(
+        error.response?.data?.message || error.message || "An error occurred"
+      );
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
 
   useEffect(() => {
     if (user) {

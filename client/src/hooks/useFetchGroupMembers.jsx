@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import axios from "axios";
-import { setMembers, setSingleGroup } from "@/redux/groupSlice"; // Correctly import setSingleGroup
+import { setMembers, setSingleGroup } from "@/redux/groupSlice"; 
 import { COMPANY_API_END_POINT } from "@/utils/constant";
 
 const useFetchGroupMembers = (id) => {

@@ -15,15 +15,17 @@ const useGetAllAdminProjects = () => {
             withCredentials: true,
           }
         );
+        console.log("API Response:", res.data);
         if (res.data.success) {
           dispatch(setAllAdminProjects(res.data.projects));
         }
       } catch (error) {
-        console.log(error);
+        console.log("Error fetching projects:", error);
       }
     };
+
     fetchAllAdminProjects();
-  }, []);
+  }, [dispatch]);
 };
 
 export default useGetAllAdminProjects;

@@ -17,7 +17,6 @@ const RequestedProjectTable = () => {
   return (
     <div>
       <Table>
-        <TableCaption>A list of your applied projects</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>Date</TableHead>
@@ -32,7 +31,9 @@ const RequestedProjectTable = () => {
           ) : (
             allRequestedProjects.map((requestedProject) => (
               <TableRow key={requestedProject._id}>
-                <TableCell>{requestedProject?.createdAt?.split("T")[0]}</TableCell>
+                <TableCell>
+                  {requestedProject?.createdAt?.split("T")[0]}
+                </TableCell>
                 <TableCell>{requestedProject.project?.title}</TableCell>
                 <TableCell>{requestedProject.project?.group?.name}</TableCell>
                 <TableCell className="text-right">
