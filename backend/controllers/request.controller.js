@@ -85,20 +85,27 @@ export const getRequesters = async (req, res) => {
       options: { sort: { createdAt: -1 } },
       populate: {
         path: "requester",
+        select: "username email profession profile", 
       },
     });
+
     if (!project) {
       return res.status(404).json({
-        message: "project not found.",
+        message: "Project not found",
         success: false,
       });
     }
+
     return res.status(200).json({
       project,
-      succees: true,
+      success: true,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error in getRequesters:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+    });
   }
 };
 
@@ -106,30 +113,45 @@ export const updateStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const requestId = req.params.id;
+
     if (!status) {
       return res.status(400).json({
-        message: "status is required",
+        message: "Status is required",
         success: false,
       });
     }
 
-    const request = await Request.findOne({ _id: requestId });
+    // Validate status value
+    const validStatuses = ["thinking", "accepted", "rejected"];
+    if (!validStatuses.includes(status.toLowerCase())) {
+      return res.status(400).json({
+        message: "Invalid status value",
+        success: false,
+      });
+    }
+
+    const request = await Request.findById(requestId);
     if (!request) {
       return res.status(404).json({
-        message: "request not found.",
+        message: "Request not found",
         success: false,
       });
     }
 
-    // update the status
+    // Update the status
     request.status = status.toLowerCase();
     await request.save();
 
     return res.status(200).json({
-      message: "Status updated successfully.",
+      message: "Status updated successfully",
       success: true,
+      request,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error in updateStatus:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+    });
   }
 };

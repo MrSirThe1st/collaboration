@@ -29,6 +29,7 @@ export const postProject = async (req, res) => {
       socialWebsite,
       startDate,
       endDate,
+      category
     } = req.body;
     const userId = req.id;
 
@@ -43,7 +44,8 @@ export const postProject = async (req, res) => {
       !requirements ||
       !maxTeamSize ||
       !location ||
-      !groupId
+      !groupId ||
+      !category
     ) {
       return res.status(400).json({
         message: "Something is missing.",
@@ -77,6 +79,7 @@ export const postProject = async (req, res) => {
       socialWebsite,
       startDate,
       endDate,
+      category
     });
 
     return res.status(201).json({
@@ -154,11 +157,21 @@ export const getProjectById = async (req, res) => {
 export const getUserById = async (req, res) => {
   try {
     const userId = req.params.id;
-    const user = await User.findById(userId);
+
+    if (!userId) {
+      return res.status(400).json({
+        message: "User ID is required",
+        success: false,
+      });
+    }
+
+    const user = await User.findById(userId).select(
+      "username email profession profile.profilePhoto profile.bio"
+    );
 
     if (!user) {
       return res.status(404).json({
-        message: "User not found.",
+        message: "User not found",
         success: false,
       });
     }
@@ -168,7 +181,7 @@ export const getUserById = async (req, res) => {
       success: true,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error in getUserById:", error);
     return res.status(500).json({
       message: "Internal Server Error",
       success: false,

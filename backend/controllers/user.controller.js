@@ -117,60 +117,74 @@ export const logout = async (req, res) => {
 };
 
 
+
 export const updateProfile = async (req, res) => {
   try {
-    const { username, email, bio, skills, profession, socialLinks } = req.body;
+    const { username, email, bio, github, linkedin, portfolio, skills } =
+      req.body;
 
-    const file = req.file;
-
-    const fileUri = getDataUri(file);
-    const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
-
-    let skillsArray;
-    if (skills) {
-      skillsArray = skills.split(",");
-    }
-
-    if (socialLinks) {
-      user.profile.socialLinks = JSON.parse(socialLinks);
-    }
-
-    const userId = req.id; // middleware authentication
+    const userId = req.id;
     let user = await User.findById(userId);
 
     if (!user) {
-      return res.status(400).json({
+      return res.status(404).json({
         message: "User not found.",
         success: false,
       });
     }
-    // updating data
+
+    // Handle file upload if present
+    if (req.file) {
+      const fileUri = getDataUri(req.file);
+      const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+      user.profile.profilePhoto = cloudResponse.secure_url;
+    }
+
+    // Update user fields
     if (username) user.username = username;
     if (email) user.email = email;
-    if (profession) user.profession = profession;
     if (bio) user.profile.bio = bio;
-    if (skills) user.profile.skills = skillsArray;
 
+    // Handle skills as simple array
+    if (skills) {
+      try {
+        const parsedSkills = JSON.parse(skills);
+        user.profile.skills = parsedSkills;
+      } catch (error) {
+        console.error("Skills parsing error:", error);
+        return res.status(400).json({
+          message: "Invalid skills format",
+          success: false,
+        });
+      }
+    }
+
+    user.profile.socialLinks = {
+      github: github || user.profile.socialLinks?.github || "",
+      linkedin: linkedin || user.profile.socialLinks?.linkedin || "",
+      portfolio: portfolio || user.profile.socialLinks?.portfolio || "",
+    };
 
     await user.save();
 
-    user = {
-      _id: user._id,
-      username: user.username,
-      email: user.email,
-      profile: user.profile,
-    };
-
     return res.status(200).json({
       message: "Profile updated successfully.",
-      user,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        profile: user.profile,
+      },
       success: true,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Profile update error:", error);
+    return res.status(500).json({
+      message: "Error updating profile: " + error.message,
+      success: false,
+    });
   }
 };
-
 
 
 export const addToGroup = async (req, res) => {
@@ -251,6 +265,26 @@ export const getUsersByProfession = async (req, res) => {
         success: false,
       });
     }
+
+    return res.status(200).json({
+      message: "Users fetched successfully.",
+      users,
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false,
+    });
+  }
+};
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select(
+      "username email profession profile status"
+    ); 
 
     return res.status(200).json({
       message: "Users fetched successfully.",

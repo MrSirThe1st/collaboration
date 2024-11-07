@@ -16,16 +16,6 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     project: [{ type: mongoose.Schema.Types.ObjectId, ref: "Project" }],
-
-    profession: {
-      type: String,
-      required: true,
-    },
-    role: {
-      type: String,
-      enum: ["admin", "user"],
-      required: false,
-    },
     profile: {
       bio: { type: String },
       skills: [{ type: String }],
@@ -35,9 +25,9 @@ const userSchema = new mongoose.Schema(
         default: "",
       },
       socialLinks: {
-        github: String,
-        linkedin: String,
-        portfolio: String,
+        github: { type: String, default: "" },
+        linkedin: { type: String, default: "" },
+        portfolio: { type: String, default: "" },
       },
       role: {
         type: String,

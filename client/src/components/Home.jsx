@@ -1,23 +1,52 @@
-import React, { useEffect } from "react";
-import Navbar from "./shared/Navbar";
-import HeroSection from "./HeroSection";
-import CategoryCarousel from "./CategoryCarousel";
-import LatestProjects from "./LatestProjects";
-import Footer from "./shared/Footer";
+import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import useGetAllProjects from "@/hooks/useGetAllProjects";
-import SideBar from "./shared/SideBar";
+import SearchFilterSection from "./SearchFilterSection";
+import LatestProjects from "./LatestProjects";
 
 const Home = () => {
   useGetAllProjects();
-  const { user } = useSelector((store) => store.auth);
-  const navigate = useNavigate();
+  const { allProjects } = useSelector((store) => store.project);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter projects based on category and search query
+  const filteredProjects = useMemo(() => {
+    if (!allProjects) return [];
+
+    return allProjects.filter((project) => {
+      // Category filter - check both category and tags
+      const categoryMatch =
+        selectedCategory === "all" ||
+        project.category?.toLowerCase() === selectedCategory ||
+        project.tags?.some((tag) => tag.toLowerCase() === selectedCategory);
+
+      // Search filter - check title, description, and tags
+      const searchTerms = searchQuery.toLowerCase();
+      const searchMatch =
+        !searchQuery ||
+        [
+          project.title,
+          project.description,
+          ...(project.tags || []),
+          ...(project.requirements || []),
+        ].some((field) => field?.toLowerCase().includes(searchTerms));
+
+      return categoryMatch && searchMatch;
+    });
+  }, [allProjects, selectedCategory, searchQuery]);
 
   return (
-    <div>
-      <HeroSection />
-      <LatestProjects />
+    <div className="min-h-screen ">
+      <div className="py-8">
+        <SearchFilterSection
+          selectedCategory={selectedCategory}
+          searchQuery={searchQuery}
+          onCategoryChange={setSelectedCategory}
+          onSearchChange={setSearchQuery}
+        />
+        <LatestProjects projects={filteredProjects} />
+      </div>
     </div>
   );
 };

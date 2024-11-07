@@ -1,32 +1,66 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { setSingleProject } from "@/redux/projectSlice";
 import { PROJECT_API_END_POINT } from "@/utils/constant";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import CalendarView from "../ProjectMessages/components/CalendarView";
+import MembersList from "../ProjectMessages/MembersList";
+import MessageArea from "../ProjectMessages/MessagesArea";
+import FilesView from "../ProjectMessages/components/FilesView";
+import MilestonesView from "../ProjectMessages/components/MilestonesView";
+import TasksView from "../ProjectMessages/components/TasksView";
+import ChannelsList from "../ProjectMessages/ChannelsList";
+import ProjectInfo from "../ProjectMessages/ProjectInfo";
+import ProjectHeader from "../ProjectMessages/ProjectHeader";
+import Layout from "../ProjectMessages/Layout";
+import Group from "./group";
 import {
-  CalendarIcon,
-  MapPinIcon,
-  UsersIcon,
-  TagIcon,
-  BookIcon,
-  FlagIcon,
-  ClockIcon,
+  Hash,
+  Users,
+  Settings,
+  Plus,
+  ChevronDown,
+  Lock,
+  Bell,
+  MessageSquare,
+  ListTodo,
+  Milestone,
+  FileText,
+  Calendar,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "../ui/separator";
+import { Badge } from "../ui/badge";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const ProjectPage = () => {
+  // Existing state
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const project = useSelector((state) => state.project.singleProject);
   const user = useSelector((state) => state.auth.user);
   const [membersInfo, setMembersInfo] = useState([]);
+
+  // New state for project management features
+  const [selectedChannel, setSelectedChannel] = useState(null);
+  const [channels, setChannels] = useState([
+    { id: "general", name: "General", type: "public" },
+    { id: "announcements", name: "Announcements", type: "restricted" },
+  ]);
+  const [roleChannels, setRoleChannels] = useState([]);
+  const [activeView, setActiveView] = useState("chat"); // chat, tasks, files, etc
+  const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const isProjectOwner = project?.created_by === user._id;
 
@@ -91,219 +125,221 @@ const ProjectPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Card className="mb-8">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div className="flex items-center">
-            <Avatar className="h-16 w-16 mr-4">
-              <AvatarImage src={project.logo} alt={project.title} />
+    <div className="h-screen flex overflow-hidden bg-background">
+      {/* Project Sidebar */}
+      <div className="hidden lg:flex lg:flex-col lg:w-64 border-r">
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-lg truncate">{project?.title}</h2>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>Project Settings</DropdownMenuItem>
+                <DropdownMenuItem>Invite Members</DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600">
+                  Leave Project
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <Badge variant="secondary">{project?.status}</Badge>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              {membersInfo.length}
+            </Badge>
+          </div>
+        </div>
+
+        <ScrollArea className="flex-1">
+          {/* Channels Section */}
+          <div className="p-2">
+            <div className="flex items-center justify-between p-2">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Channels
+              </h3>
+              {isProjectOwner && (
+                <Button variant="ghost" size="icon">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <div className="space-y-[2px]">
+              {channels.map((channel) => (
+                <button
+                  key={channel.id}
+                  className={cn(
+                    "w-full flex items-center gap-2 p-2 rounded-md",
+                    "hover:bg-accent text-sm",
+                    selectedChannel?.id === channel.id && "bg-accent"
+                  )}
+                  onClick={() => setSelectedChannel(channel)}
+                >
+                  <Hash className="h-4 w-4" />
+                  <span className="flex-1 text-left">{channel.name}</span>
+                  {channel.type === "restricted" && (
+                    <Lock className="h-3 w-3 text-muted-foreground" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Role-based Channels */}
+          {roleChannels.length > 0 && (
+            <div className="p-2">
+              <div className="flex items-center justify-between p-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Role Channels
+                </h3>
+              </div>
+              <div className="space-y-[2px]">
+                {roleChannels.map((channel) => (
+                  <button
+                    key={channel.id}
+                    className={cn(
+                      "w-full flex items-center gap-2 p-2 rounded-md",
+                      "hover:bg-accent text-sm",
+                      selectedChannel?.id === channel.id && "bg-accent"
+                    )}
+                    onClick={() => setSelectedChannel(channel)}
+                  >
+                    <Users className="h-4 w-4" />
+                    <span className="flex-1 text-left">{channel.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <Separator className="my-2" />
+
+          {/* Quick Access */}
+          <div className="p-2">
+            <h3 className="px-2 py-1.5 text-sm font-medium text-muted-foreground">
+              Quick Access
+            </h3>
+            <div className="space-y-[2px]">
+              <button
+                className={cn(
+                  "w-full flex items-center gap-2 p-2 rounded-md",
+                  "hover:bg-accent text-sm",
+                  activeView === "tasks" && "bg-accent"
+                )}
+                onClick={() => setActiveView("tasks")}
+              >
+                <ListTodo className="h-4 w-4" />
+                <span>Tasks</span>
+              </button>
+              <button
+                className={cn(
+                  "w-full flex items-center gap-2 p-2 rounded-md",
+                  "hover:bg-accent text-sm",
+                  activeView === "milestones" && "bg-accent"
+                )}
+                onClick={() => setActiveView("milestones")}
+              >
+                <Milestone className="h-4 w-4" />
+                <span>Milestones</span>
+              </button>
+              <button
+                className={cn(
+                  "w-full flex items-center gap-2 p-2 rounded-md",
+                  "hover:bg-accent text-sm",
+                  activeView === "files" && "bg-accent"
+                )}
+                onClick={() => setActiveView("files")}
+              >
+                <FileText className="h-4 w-4" />
+                <span>Files</span>
+              </button>
+              <button
+                className={cn(
+                  "w-full flex items-center gap-2 p-2 rounded-md",
+                  "hover:bg-accent text-sm",
+                  activeView === "calendar" && "bg-accent"
+                )}
+                onClick={() => setActiveView("calendar")}
+              >
+                <Calendar className="h-4 w-4" />
+                <span>Calendar</span>
+              </button>
+            </div>
+          </div>
+        </ScrollArea>
+
+        {/* User Section */}
+        <div className="p-4 border-t">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.profile?.profilePhoto} />
               <AvatarFallback>
-                {project.title.slice(0, 2).toUpperCase()}
+                {user?.username?.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <CardTitle className="text-3xl font-bold">
-                {project.title}
-              </CardTitle>
-              <Badge
-                variant={
-                  project.status === "In Progress" ? "default" : "secondary"
-                }
-              >
-                {project.status}
-              </Badge>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{user?.username}</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {user?.role || "Member"}
+              </p>
             </div>
-          </div>
-          {isProjectOwner && (
-            <Button
-              onClick={() => navigate(`/admin/projects/${project._id}/edit`)}
-            >
-              Edit Project
+            <Button variant="ghost" size="icon">
+              <Settings className="h-4 w-4" />
             </Button>
-          )}
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600 mb-4">{project.description}</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="flex items-center">
-              <CalendarIcon className="mr-2" />
-              <span>
-                Created: {new Date(project.createdAt).toLocaleDateString()}
-              </span>
-            </div>
-            <div className="flex items-center">
-              <MapPinIcon className="mr-2" />
-              <span>Location: {project.location}</span>
-            </div>
-            <div className="flex items-center">
-              <UsersIcon className="mr-2" />
-              <span>Max Team Size: {project.maxTeamSize}</span>
-            </div>
           </div>
-          <div className="mb-4">
-            <h3 className="font-semibold mb-2">Requirements:</h3>
-            <div className="flex flex-wrap gap-2">
-              {project.requirements.map((req, index) => (
-                <Badge key={index} variant="secondary">
-                  {req}
-                </Badge>
-              ))}
-            </div>
-          </div>
-          <div className="mb-4">
-            <h3 className="font-semibold mb-2">Skills:</h3>
-            <div className="flex flex-wrap gap-2">
-              {project.skills.map((skill, index) => (
-                <Badge key={index} variant="outline">
-                  {skill}
-                </Badge>
-              ))}
-            </div>
-          </div>
-          <div className="mb-4">
-            <h3 className="font-semibold mb-2">Tags:</h3>
-            <div className="flex flex-wrap gap-2">
-              {project.tags.map((tag, index) => (
-                <Badge key={index} variant="secondary">
-                  <TagIcon className="w-4 h-4 mr-1" />
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          </div>
-          <div className="mb-4">
-            <h3 className="font-semibold mb-2">Timeline:</h3>
-            <div className="flex items-center justify-between">
-              <span>
-                Start: {new Date(project.startDate).toLocaleDateString()}
-              </span>
-              <span>End: {new Date(project.endDate).toLocaleDateString()}</span>
-            </div>
-            <Progress value={calculateProgress()} className="mt-2" />
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Tabs defaultValue="team" className="mb-8">
-        <TabsList>
-          <TabsTrigger value="team">Team Members</TabsTrigger>
-          <TabsTrigger value="milestones">Milestones</TabsTrigger>
-          <TabsTrigger value="resources">Resources</TabsTrigger>
-        </TabsList>
-        <TabsContent value="team">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-semibold">
-                Team Members
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {membersInfo.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {membersInfo.map((member) => (
-                    <div
-                      key={member._id}
-                      className="flex items-center p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleMemberClick(member)}
-                    >
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage
-                          src={member.profile?.profilePhoto}
-                          alt={member.username}
-                        />
-                        <AvatarFallback>
-                          {member.username.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="ml-4">
-                        <p className="font-semibold">{member.username}</p>
-                        <p className="text-sm text-gray-500">{member.role}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p>No team members yet.</p>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="milestones">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-semibold">
-                Milestones
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {project.milestones.length > 0 ? (
-                <ul className="space-y-4">
-                  {project.milestones.map((milestone, index) => (
-                    <li key={index} className="flex items-center">
-                      <FlagIcon className="mr-2" />
-                      <span>{milestone}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No milestones set yet.</p>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="resources">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-semibold">
-                Resources
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {project.resources.length > 0 ? (
-                <ul className="space-y-4">
-                  {project.resources.map((resource, index) => (
-                    <li key={index} className="flex items-center">
-                      <BookIcon className="mr-2" />
-                      <a
-                        href={resource.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline"
-                      >
-                        {resource.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No resources added yet.</p>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Channel/View Header */}
+        <header className="h-14 border-b flex items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            {selectedChannel ? (
+              <>
+                <Hash className="h-4 w-4" />
+                <h3 className="font-semibold">{selectedChannel.name}</h3>
+              </>
+            ) : (
+              <h3 className="font-semibold capitalize">{activeView}</h3>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon">
+              <Bell className="h-4 w-4" />
+            </Button>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Users className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right">
+                <MembersList members={membersInfo} />
+              </SheetContent>
+            </Sheet>
+          </div>
+        </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-semibold">
-            Open Positions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {project.openPositions.length > 0 ? (
-            <ul className="space-y-4">
-              {project.openPositions.map((position, index) => (
-                <li key={index} className="flex items-center">
-                  <ClockIcon className="mr-2" />
-                  <span>{position}</span>
-                </li>
-              ))}
-            </ul>
+        {/* Dynamic Content Area */}
+        <div className="flex-1 min-h-0">
+          {selectedChannel ? (
+            <MessageArea channel={selectedChannel} />
           ) : (
-            <p>No open positions at the moment.</p>
+            <div className="h-full p-4">
+              {/* Render different views based on activeView */}
+              {activeView === "tasks" && <TasksView />}
+              {activeView === "milestones" && <MilestonesView />}
+              {activeView === "files" && <FilesView />}
+              {activeView === "calendar" && <CalendarView />}
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

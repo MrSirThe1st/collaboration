@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Import useNavigate
+import { useParams, useNavigate } from "react-router-dom"; 
 import axios from "axios";
-import Navbar from "./shared/Navbar";
-import Footer from "./shared/Footer";
 import { USER_API_END_POINT } from "@/utils/constant";
 
 const Category = () => {

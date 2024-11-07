@@ -20,6 +20,15 @@ import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import DatePickerWithRange from "../DatePickerWithRange";
 
+
+const CATEGORIES = [
+  { value: "Web Development", label: "Web Development" },
+  { value: "Mobile Development", label: "Mobile Development" },
+  { value: "UI/UX Design", label: "UI/UX Design" },
+  { value: "Data Science", label: "Data Science" },
+];
+
+
 const PostProject = () => {
   const [input, setInput] = useState({
     title: "",
@@ -48,6 +57,7 @@ const PostProject = () => {
     socialLinkedin: "",
     socialGithub: "",
     socialWebsite: "",
+    category: ""
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -341,6 +351,27 @@ const PostProject = () => {
               value={input.socialWebsite}
               onChange={changeEventHandler}
             />
+          </div>
+          <div>
+            <Label>Category</Label>
+            <Select
+              name="category"
+              onValueChange={(value) => selectChangeHandler("category", value)}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {CATEGORIES.map((category) => (
+                    <SelectItem value={category.value} key={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         {loading ? (

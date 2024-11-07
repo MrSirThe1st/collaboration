@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext, createContext } from "react";
-import { useSelector } from "react-redux"; 
-import io from "socket.io-client";
+import { useSelector } from "react-redux";
+import { io } from "socket.io-client";
 
 const SocketContext = createContext();
 

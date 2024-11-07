@@ -88,6 +88,16 @@ const projectSchema = new mongoose.Schema(
       platform: String,
       link: String,
     },
+    category: {
+      type: String,
+      enum: [
+        "Web Development",
+        "Mobile Development",
+        "UI/UX Design",
+        "Data Science",
+      ],
+      required: true, 
+    },
     budget: {
       estimated: Number,
       current: Number,
@@ -100,7 +110,7 @@ const projectSchema = new mongoose.Schema(
       github: String,
       website: String,
     },
-    startDate: { type: Date, required: false }, // Start date of the project
+    startDate: { type: Date, required: false },
     endDate: { type: Date, required: false },
   },
   { timestamps: true }

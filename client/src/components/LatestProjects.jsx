@@ -1,19 +1,16 @@
 import React from "react";
 import LatestProjectCards from "./LatestProjectCards";
-import { useSelector } from "react-redux";
 
-
-const LatestProjects = () => {
-  const { allProjects } = useSelector((store) => store.project);
-  
-
+const LatestProjects = ({ projects }) => {
   return (
-    <div className="max-w-7xl mx-auto my-10">
-      <div className="grid grid-cols-3 gap-4 my-5">
-        {!allProjects || allProjects.length <= 0 ? (
-          <span>No Projects Available Yet</span>
+    <div className="max-w-7xl mx-auto px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {!projects || projects.length === 0 ? (
+          <div className="col-span-full text-center text-gray-500 py-8">
+            No projects found for the selected criteria
+          </div>
         ) : (
-          allProjects.map((project) => (
+          projects.map((project) => (
             <LatestProjectCards key={project._id} project={project} />
           ))
         )}

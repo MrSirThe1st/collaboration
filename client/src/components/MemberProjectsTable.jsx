@@ -20,11 +20,19 @@ const MemberProjectsGrid = ({ projects, user }) => {
             onClick={() => navigate(`/admin/projects/${project._id}/page`)}
           >
             {/* Subtle background line */}
-            <div className="absolute top-1/4 left-0 right-0 h-0.5 bg-white z-0"></div>
 
             <div className="p-4 relative z-10">
               {/* Circular pink placeholder image */}
-              <div className="w-20 h-20 bg-pink-500 rounded-full mb-4 mx-auto "></div>
+
+              {project.logo ? (
+                <img
+                  src={project.logo}
+                  alt={`${project.title} logo`}
+                  className="w-20 h-20 rounded-full mb-4 mx-auto object-cover"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-pink-500 rounded-full mb-4 mx-auto "></div>
+              )}
 
               <div className="flex justify-between items-start mb-2">
                 <div>
@@ -50,7 +58,9 @@ const MemberProjectsGrid = ({ projects, user }) => {
                   </PopoverContent>
                 </Popover>
               </div>
-              <p className="text-sm text-gray-600">{project.description}</p>
+              <p className="text-sm text-gray-600 line-clamp-3">
+                {project.description}
+              </p>
               <p className="text-xs text-gray-400 mt-2">
                 {project?.createdAt.split("T")[0]}
               </p>

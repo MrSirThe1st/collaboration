@@ -17,22 +17,27 @@ const Workspace = () => {
   const { groups } = useSelector((state) => state.group);
   const { allProjects } = useSelector((state) => state.project);
 
+  // Call hooks only once
   useGetAllGroups();
   useGetAllProjects();
 
-  const userGroups = groups.filter((group) => group.created_by === user._id);
-  const userProjects = allProjects.filter((project) =>
-    project.members.some((member) => member.user === user._id)
+  // Memoize these calculations to prevent unnecessary re-renders
+  const userGroups = React.useMemo(
+    () => groups.filter((group) => group.created_by === user._id),
+    [groups, user._id]
+  );
+
+  const userProjects = React.useMemo(
+    () =>
+      allProjects.filter((project) =>
+        project.members.some((member) => member.user === user._id)
+      ),
+    [allProjects, user._id]
   );
 
   return (
     <div className="max-w-6xl mx-auto my-10">
       <div className="flex items-center justify-between my-3">
-        <Input
-          className="w-fit"
-          placeholder="Filter by name"
-          onChange={(e) => setInput(e.target.value)}
-        />
         <Button onClick={() => navigate("/admin/create")}>
           <Plus className="h-5 w-5" />
           New Group
@@ -47,7 +52,7 @@ const Workspace = () => {
         </TabsList>
 
         <TabsContent value="groups">
-          <GroupsTable />
+          <GroupsTable groups={userGroups} />
         </TabsContent>
 
         <TabsContent value="projects">

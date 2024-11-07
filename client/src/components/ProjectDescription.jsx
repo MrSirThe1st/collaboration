@@ -18,7 +18,17 @@ import {
   UsersIcon,
   BriefcaseIcon,
   ClockIcon,
+  TagIcon,
+  CheckCircleIcon,
+  GlobeIcon,
+  GitBranchIcon,
+  DollarSignIcon,
+  Users,
+  Target,
+  Calendar,
+  MessageSquare,
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 const ProjectDescription = () => {
   const { singleProject } = useSelector((store) => store.project);
@@ -37,6 +47,15 @@ const ProjectDescription = () => {
   const params = useParams();
   const projectId = params.id;
   const dispatch = useDispatch();
+
+  // Calculate project completion percentage based on milestones
+  const calculateProgress = () => {
+    if (!singleProject?.milestones?.length) return 0;
+    const completed = singleProject.milestones.filter(
+      (m) => m.completed
+    ).length;
+    return (completed / singleProject.milestones.length) * 100;
+  };
 
   const requestProjectHandler = async () => {
     try {
@@ -116,116 +135,203 @@ const ProjectDescription = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto my-10 px-4">
-      <Card className="mb-8">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-3xl font-bold">
-              {singleProject?.title}
-            </CardTitle>
-            <div className="flex items-center gap-2 mt-4">
-              <Badge variant="secondary" className="text-blue-700 font-bold">
-                {singleProject?.description} Positions
-              </Badge>
-              <Badge variant="secondary" className="text-[#F83002] font-bold">
-                {singleProject?.location}
-              </Badge>
-              <Badge variant="secondary" className="text-[#7209b7] font-bold">
-                {singleProject?.requirements} LPA
-              </Badge>
+    <div className="max-w-7xl mx-auto my-10 px-4 space-y-8">
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-r from-purple-700 to-indigo-800 rounded-xl p-8 text-white shadow-xl">
+        <div className="absolute inset-0 bg-black opacity-10 rounded-xl"></div>
+        <div className="relative z-10">
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-4xl font-bold mb-4">
+                {singleProject?.title}
+              </h1>
+              <div className="flex flex-wrap gap-3 mb-6">
+                <Badge className="bg-white/20 text-white hover:bg-white/30">
+                  {singleProject?.status || "Active"}
+                </Badge>
+                <Badge className="bg-white/20 text-white hover:bg-white/30">
+                  {singleProject?.location}
+                </Badge>
+                <Badge className="bg-white/20 text-white hover:bg-white/30">
+                  {`${singleProject?.members?.length || 0} Members`}
+                </Badge>
+              </div>
+            </div>
+            <div className="flex flex-col gap-3">
+              {isCreator ? (
+                <Button
+                  onClick={viewProjectHandler}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                >
+                  Manage Project
+                </Button>
+              ) : (
+                <Button
+                  onClick={isRequested ? null : requestProjectHandler}
+                  disabled={isRequested}
+                  className={`${
+                    isRequested
+                      ? "bg-gray-600"
+                      : "bg-white text-purple-700 hover:bg-gray-100"
+                  }`}
+                >
+                  {isRequested ? "Request Sent" : "Join Project"}
+                </Button>
+              )}
             </div>
           </div>
-          {isCreator ? (
-            <Button
-              onClick={viewProjectHandler}
-              className="rounded-lg bg-[#4CAF50] hover:bg-[#45a049]"
-            >
-              View Project
-            </Button>
-          ) : (
-            <Button
-              onClick={isRequested ? null : requestProjectHandler}
-              disabled={isRequested}
-              className={`rounded-lg ${
-                isRequested
-                  ? "bg-gray-600 cursor-not-allowed"
-                  : "bg-[#7209b7] hover:bg-[#5f32ad]"
-              }`}
-            >
-              {isRequested ? "Already Requested" : "Request Now"}
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent>
-          <h2 className="text-xl font-semibold mb-4">Project Details</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center">
-              <BriefcaseIcon className="mr-2" />
-              <span className="font-medium">Role:</span>
-              <span className="ml-2">{singleProject?.title}</span>
-            </div>
-            <div className="flex items-center">
-              <MapPinIcon className="mr-2" />
-              <span className="font-medium">Location:</span>
-              <span className="ml-2">{singleProject?.location}</span>
-            </div>
-            <div className="flex items-center">
-              <UsersIcon className="mr-2" />
-              <span className="font-medium">Total Requesters:</span>
-              <span className="ml-2">{singleProject?.requests?.length}</span>
-            </div>
-            <div className="flex items-center">
-              <CalendarIcon className="mr-2" />
-              <span className="font-medium">Posted Date:</span>
-              <span className="ml-2">
-                {new Date(singleProject?.createdAt).toLocaleDateString()}
-              </span>
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="font-medium">Description:</h3>
-            <p className="mt-2 text-gray-700">{singleProject?.description}</p>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
+      {/* Project Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Main Info */}
+        <div className="md:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">Project Overview</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="prose max-w-none">
+                <p className="text-gray-600">{singleProject?.description}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="text-purple-600" />
+                  <div>
+                    <p className="text-sm text-gray-500">Start Date</p>
+                    <p className="font-medium">
+                      {new Date(singleProject?.startDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Target className="text-purple-600" />
+                  <div>
+                    <p className="text-sm text-gray-500">End Date</p>
+                    <p className="font-medium">
+                      {new Date(singleProject?.endDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Project Progress */}
+              <div>
+                <div className="flex justify-between mb-2">
+                  <span className="text-sm font-medium">Project Progress</span>
+                  <span className="text-sm text-gray-600">
+                    {Math.round(calculateProgress())}%
+                  </span>
+                </div>
+                <Progress value={calculateProgress()} className="h-2" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Side Info */}
+        <div className="space-y-8">
+          {/* Quick Stats */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Project Stats</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Users className="text-purple-600" />
+                  <span>Team Size</span>
+                </div>
+                <Badge variant="outline">{singleProject?.maxTeamSize}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <MessageSquare className="text-purple-600" />
+                  <span>Open Positions</span>
+                </div>
+                <Badge variant="outline">
+                  {singleProject?.openPositions?.length || 0}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <DollarSignIcon className="text-purple-600" />
+                  <span>Budget</span>
+                </div>
+                <Badge variant="outline">
+                  {singleProject?.budget?.estimated || "N/A"}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Required Skills */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Required Skills</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {singleProject?.skills?.map((skill, index) => (
+                  <Badge key={index} variant="secondary">
+                    {skill}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Team Members */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-semibold">Team Members</CardTitle>
-          <p className="text-sm text-gray-600">
-            Number of Members: {singleProject?.members?.length || 0}
-          </p>
+        <CardHeader className="border-b">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-2xl">Team Members</CardTitle>
+            <Badge variant="outline" className="text-lg">
+              {membersInfo.length} Members
+            </Badge>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {membersInfo.length ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {membersInfo.map((member, index) => (
                 <div
                   key={index}
-                  className="flex items-center p-4 bg-gray-50 rounded-lg"
+                  className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <Avatar className="h-12 w-12">
+                  <Avatar className="h-14 w-14 border-2 border-purple-200">
                     <AvatarImage
                       src={
                         member.profile?.profilePhoto || "/default-avatar.png"
                       }
-                      alt={member.title || "Member"}
+                      alt={member.username}
                     />
-                    <AvatarFallback>
-                      {member.username.slice(0, 2).toUpperCase()}
+                    <AvatarFallback className="bg-purple-100 text-purple-700">
+                      {member.username?.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="ml-4">
-                    <h3 className="font-semibold">{member.username}</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      {member.username}
+                    </h3>
                     <p className="text-sm text-gray-600">{member.role}</p>
+                    <Badge variant="outline" className="mt-1 text-xs">
+                      {member.profession}
+                    </Badge>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-600">
-              No members yet. Be the first to join!
-            </p>
+            <div className="text-center py-8 text-gray-500">
+              <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <p className="text-lg font-medium">No team members yet</p>
+              <p className="text-sm">Be the first to join this project!</p>
+            </div>
           )}
         </CardContent>
       </Card>

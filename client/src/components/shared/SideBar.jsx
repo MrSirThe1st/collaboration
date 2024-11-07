@@ -128,20 +128,11 @@ const Sidebar = () => {
                       <h1 className="font-medium text-primary">
                         {user?.username}
                       </h1>
-                      <p className="text-xs text-muted-foreground">
-                        {user?.profile?.bio}
-                      </p>
                     </div>
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-52">
-                  <div className="p-4">
-                    <h4 className="font-medium">{user?.fullname}</h4>
-                    <p className="text-xs text-muted-foreground">
-                      {user?.profile?.bio}
-                    </p>
-                  </div>
                   <DropdownMenuItem onClick={() => updateStatus("available")}>
                     Available
                   </DropdownMenuItem>

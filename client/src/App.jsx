@@ -4,17 +4,14 @@ import Signup from "./components/auth/Signup";
 import Home from "./components/Home";
 import Group from "./components/admin/group";
 import Profile from "./components/Profile";
-import Groups from "./components/admin/groups";
 import PostProject from "./components/admin/PostProject";
 import GroupCreate from "./components/admin/GroupCreate";
 import GroupSetup from "./components/admin/GroupSetup";
 import Category from "./components/Category";
 import UserDetail from "./components/UserDetail";
 import ProjectDescription from "./components/ProjectDescription";
-import Requesters from "./components/admin/Requesters";
 import ProjectPage from "./components/admin/ProjectPage";
-import MessageContainer from "./components/messages/MessageContainer";
-import { SocketContextProvider } from "../context/SocketContext.jsx";
+import { SocketContextProvider } from "../context/SocketContext";
 import Layout from "./components/Layout";
 import Invitations from "./components/Invitations";
 import InvitationsOut from "./components/InvitationsOut";
@@ -23,6 +20,7 @@ import Workspace from "./components/Workspace";
 import Layout2 from "./components/Layout2";
 import AllInvitations from "./components/AllInvitations";
 import Team from "./components/Team";
+
 
 const appRouter = createBrowserRouter([
   {
@@ -42,10 +40,6 @@ const appRouter = createBrowserRouter([
     element: <Signup />,
   },
   {
-    path: "/messages/:id",
-    element: <MessageContainer />,
-  },
-  {
     path: "/admin/create",
     element: <GroupCreate />,
   },
@@ -53,10 +47,10 @@ const appRouter = createBrowserRouter([
     path: "/admin/group/:id",
     element: <Group />,
   },
-  {
-    path: "/admin/group",
-    element: <Group />,
-  },
+  // {
+  //   path: "/admin/group",
+  //   element: <Group />,
+  // },
   {
     path: "/profile/:id",
     element: <GroupSetup />,
@@ -73,10 +67,10 @@ const appRouter = createBrowserRouter([
     path: "/admin/groups/:id",
     element: <GroupSetup />,
   },
-  {
-    path: "/admin/projects/:id/requesters",
-    element: <Requesters />,
-  },
+  // {
+  //   path: "/admin/projects/:id/requesters",
+  //   element: <Requesters />,
+  // },
   {
     path: "/invitations",
     element: (
@@ -141,10 +135,10 @@ const appRouter = createBrowserRouter([
     path: "/user/:id",
     element: <UserDetail />,
   },
-  {
-    path: "/projects/:id/requesters",
-    element: <Requesters />,
-  },
+  // {
+  //   path: "/projects/:id/requesters",
+  //   element: <Requesters />,
+  // },
   {
     path: "/admin/projects/:id/page",
     element: <ProjectPage />,
