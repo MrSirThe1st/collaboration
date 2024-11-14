@@ -1,11 +1,11 @@
+// controllers/channel.controller.js
 import { Channel } from "../models/channel.model.js";
 import { Project } from "../models/project.model.js";
 
-// Create a new channel
 export const createChannel = async (req, res) => {
   try {
-    const { name, type, projectId, allowedRoles } = req.body;
-    const userId = req.user._id;
+    const { name, role, projectId, members } = req.body;
+    const userId = req.id;
 
     // Check if project exists and user has permission
     const project = await Project.findById(projectId);
@@ -16,28 +16,37 @@ export const createChannel = async (req, res) => {
       });
     }
 
-    // Check if user has permission to create channel
-    const isProjectMember = project.members.some(
-      (member) => member.user.toString() === userId.toString()
-    );
-
-    if (!isProjectMember) {
+    // Check if user is project owner
+    if (project.created_by.toString() !== userId) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to create channels in this project",
+        message: "Only project owner can create channels",
+      });
+    }
+
+    // Check if channel with same name exists in project
+    const existingChannel = await Channel.findOne({
+      projectId,
+      name: name.toLowerCase(),
+      isDeleted: false,
+    });
+
+    if (existingChannel) {
+      return res.status(400).json({
+        success: false,
+        message: "Channel with this name already exists",
       });
     }
 
     const channel = await Channel.create({
-      name,
-      type,
+      name: name.toLowerCase(),
+      role,
       projectId,
-      allowedRoles,
       createdBy: userId,
-      members: [{ user: userId, role: "admin" }],
+      members,
     });
 
-    await channel.populate("members.user", "username email profile");
+    await channel.populate("members", "username email profile");
 
     return res.status(201).json({
       success: true,
@@ -52,43 +61,32 @@ export const createChannel = async (req, res) => {
   }
 };
 
-// Get project channels
 export const getProjectChannels = async (req, res) => {
   try {
     const { projectId } = req.params;
-    const userId = req.user._id;
+    const userId = req.id;
 
-    const project = await Project.findById(projectId);
-    if (!project) {
-      return res.status(404).json({
-        success: false,
-        message: "Project not found",
-      });
-    }
-
-    const channels = await Channel.find({
+    // Fetch custom channels from database
+    const customChannels = await Channel.find({
       projectId,
       isDeleted: false,
-      $or: [
-        { type: "public" },
-        {
-          type: "private",
-          "members.user": userId,
-        },
-        {
-          type: "role-based",
-          allowedRoles: {
-            $in: project.members.find(
-              (m) => m.user.toString() === userId.toString()
-            )?.role,
-          },
-        },
-      ],
-    }).populate("members.user", "username email profile");
+    }).populate("members", "username email profile");
+
+    // Combine with default channels
+    const allChannels = [
+      { _id: "general", name: "general", type: "public", projectId },
+      {
+        _id: "announcements",
+        name: "announcements",
+        type: "announcement",
+        projectId,
+      },
+      ...customChannels,
+    ];
 
     return res.status(200).json({
       success: true,
-      channels,
+      channels: allChannels,
     });
   } catch (error) {
     console.error("Error fetching channels:", error);
@@ -99,11 +97,10 @@ export const getProjectChannels = async (req, res) => {
   }
 };
 
-// Add member to channel
-export const addChannelMember = async (req, res) => {
+export const deleteChannel = async (req, res) => {
   try {
-    const { channelId, userId, role } = req.body;
-    const requesterId = req.user._id;
+    const { channelId } = req.params;
+    const userId = req.id;
 
     const channel = await Channel.findById(channelId);
     if (!channel) {
@@ -113,35 +110,27 @@ export const addChannelMember = async (req, res) => {
       });
     }
 
-    // Check if requester has permission
-    const requesterMember = channel.members.find(
-      (m) => m.user.toString() === requesterId.toString()
-    );
-
-    if (!requesterMember || requesterMember.role !== "admin") {
+    // Check if user is project owner
+    const project = await Project.findById(channel.projectId);
+    if (project.created_by.toString() !== userId) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to add members",
+        message: "Only project owner can delete channels",
       });
     }
 
-    // Add member if not already in channel
-    if (!channel.members.some((m) => m.user.toString() === userId)) {
-      channel.members.push({ user: userId, role });
-      await channel.save();
-    }
-
-    await channel.populate("members.user", "username email profile");
+    channel.isDeleted = true;
+    await channel.save();
 
     return res.status(200).json({
       success: true,
-      channel,
+      message: "Channel deleted successfully",
     });
   } catch (error) {
-    console.error("Error adding channel member:", error);
+    console.error("Error deleting channel:", error);
     return res.status(500).json({
       success: false,
-      message: "Error adding channel member",
+      message: "Error deleting channel",
     });
   }
 };

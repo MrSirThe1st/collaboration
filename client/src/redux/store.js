@@ -14,15 +14,15 @@ import storage from "redux-persist/lib/storage";
 import requestSlice from "./requestSlice";
 import groupSlice from "./groupSlice";
 import invitationSlice from "./invitationSlice";
-import conversationSlice from "./conversationSlice";
 import projectSlice from "./projectSlice";
+import channelSlice from "./channelSlice";
+import taskMilestoneSlice from "./taskMilestoneSlice";
 
 const persistConfig = {
   key: "root",
   version: 1,
   storage,
-  blacklist: ["project"],
-  blacklist: ["group"],
+  blacklist: ["project", "group", ],
   // blacklist: ["invitation"],
 };
 
@@ -31,8 +31,9 @@ const rootReducer = combineReducers({
   group: groupSlice,
   request: requestSlice,
   invitation: invitationSlice,
-  conversation: conversationSlice,
   project: projectSlice,
+  channel: channelSlice,
+  taskMilestone: taskMilestoneSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

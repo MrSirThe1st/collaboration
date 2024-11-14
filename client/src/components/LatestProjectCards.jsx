@@ -1,14 +1,29 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { PROJECT_API_END_POINT } from "@/utils/constant";
-import { useSelector } from "react-redux";
 
 const LatestProjectCards = ({ project }) => {
   const navigate = useNavigate();
   const [membersInfo, setMembersInfo] = useState([]);
   const [creatorInfo, setCreatorInfo] = useState(null);
+  const [showAllRequirements, setShowAllRequirements] = useState(false);
+
+  const formattedRequirements = useMemo(() => {
+    return (
+      project?.requirements?.map((req) => req.replace(/["\[\]]/g, "").trim()) ||
+      []
+    );
+  }, [project?.requirements]);
+
+  const displayedRequirements = useMemo(() => {
+    if (showAllRequirements) {
+      return formattedRequirements;
+    }
+    return formattedRequirements.slice(0, 4); // Show only first 2 requirements
+  }, [formattedRequirements, showAllRequirements]);
 
   const fetchMembersInfo = async () => {
     if (project && project.members) {
@@ -58,17 +73,21 @@ const LatestProjectCards = ({ project }) => {
       onClick={() => navigate(`/description/${project._id}`)}
       className="w-64 rounded-lg overflow-hidden shadow-md bg-white cursor-pointer hover:shadow-xl transition-shadow duration-300"
     >
-      <div className="relative">
-        {project.logo ? (
-          <img
-            src={project.logo}
-            alt={`${project?.title || "Project"} Logo`}
-            className="h-20 w-full object-cover"
-          />
-        ) : (
-          <div className="h-20 bg-blue-400" />
-        )}
-        <div className="absolute -bottom-6 left-4">
+      <div className="relative h-20">
+        <div className="absolute inset-0">
+          {project.logo ? (
+            <img
+              src={project.logo}
+              alt={`${project?.title || "Project"} Logo`}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-r from-purple-700 to-indigo-800" />
+          )}
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-900/80 to-indigo-900/80" />
+        </div>
+        <div className="absolute -bottom-6 left-4 ">
           <div className="w-12 h-12 bg-pink-400 rounded-full flex items-center justify-center shadow-md">
             {creatorInfo?.profile?.profilePhoto ? (
               <img
@@ -95,7 +114,7 @@ const LatestProjectCards = ({ project }) => {
           </div>
         </div>
       </div>
-      <div className="p-4 pt-8">
+      <div className="p-4 pt-8 ">
         <div className="flex items-center justify-between">
           <h2 className="font-bold text-lg mb-1 text-black ">
             {project?.title}
@@ -122,16 +141,38 @@ const LatestProjectCards = ({ project }) => {
           {project?.description}
         </p>
         <div className="flex flex-wrap gap-1">
-          {project?.requirements?.map((req, index) => (
+          {displayedRequirements.map((req, index) => (
             <Badge
               key={index}
               className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full"
             >
               {req}
             </Badge>
-          )) || (
-            <Badge className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-              Sample Requirement
+          ))}
+          {formattedRequirements.length > 2 && !showAllRequirements && (
+            <Badge
+              variant="ghost"
+              size="sm"
+              className="bg-gray-700"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAllRequirements(true);
+              }}
+            >
+              +{formattedRequirements.length - 2} more
+            </Badge>
+          )}
+          {showAllRequirements && (
+            <Badge
+              variant="ghost"
+              size="sm"
+              className="bg-gray-700"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAllRequirements(false);
+              }}
+            >
+              Show less
             </Badge>
           )}
         </div>

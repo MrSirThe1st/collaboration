@@ -22,7 +22,7 @@ const useFetchGroupMembers = (id) => {
         console.log("API response:", response.data);
         const { group } = response.data;
         if (group) {
-          dispatch(setSingleGroup(group)); // Use setSingleGroup here
+          dispatch(setSingleGroup(group)); 
           if (group.members && group.members.length > 0) {
             console.log("Members from API:", group.members);
             dispatch(setMembers(group.members));

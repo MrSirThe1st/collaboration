@@ -46,6 +46,10 @@ const UserDetail = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [availableRoles, setAvailableRoles] = useState([]);
 
+  const formatRole = (role) => {
+    return role.replace(/["\[\]]/g, "").trim();
+  };
+
   useGetAllAdminProjects();
   const { allAdminProjects } = useSelector((state) => state.project);
   const currentUser = useSelector((state) => state.auth.user);
@@ -109,11 +113,11 @@ const UserDetail = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className=" min-h-screen">
       <div className="container mx-auto py-10 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div className="h-48 bg-gradient-to-r from-primary/20 to-primary/10" />
+          <div className=" rounded-2xl shadow-lg overflow-hidden">
+            <div className="h-40 bg-gradient-to-r from-primary/20 to-primary/10" />
             <div className="px-8 pb-8">
               <div className="flex flex-col md:flex-row gap-6 items-start relative">
                 <div className="relative -mt-20">
@@ -136,14 +140,12 @@ const UserDetail = () => {
                 <div className="flex-1 pt-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h1 className="text-2xl font-bold text-gray-900">
-                        {user.username}
-                      </h1>
-                      <div className="flex items-center gap-2 mt-1 text-gray-600">
+                      <h1 className="text-2xl font-bold">{user.username}</h1>
+                      <div className="flex items-center gap-2 mt-1">
                         <Briefcase className="w-4 h-4" />
                         <span>{user.profession}</span>
                       </div>
-                      <div className="flex items-center gap-2 mt-1 text-gray-600">
+                      <div className="flex items-center gap-2 mt-1">
                         <Clock className="w-4 h-4" />
                         <span>Status: {user.status}</span>
                       </div>
@@ -207,8 +209,11 @@ const UserDetail = () => {
                                     </SelectTrigger>
                                     <SelectContent>
                                       {availableRoles.map((role) => (
-                                        <SelectItem key={role} value={role}>
-                                          {role}
+                                        <SelectItem
+                                          key={role}
+                                          value={formatRole(role)}
+                                        >
+                                          {formatRole(role)}
                                         </SelectItem>
                                       ))}
                                     </SelectContent>
@@ -231,7 +236,7 @@ const UserDetail = () => {
                               ) : (
                                 <>
                                   <textarea
-                                    className="w-full p-2 border rounded-md"
+                                    className="w-full p-2 border rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                     rows="4"
                                     placeholder="Write your invitation message..."
                                     value={message}
@@ -265,14 +270,14 @@ const UserDetail = () => {
               {user.profile.bio && (
                 <div className="mt-6">
                   <h2 className="text-lg font-semibold mb-2">About</h2>
-                  <p className="text-gray-600">{user.profile.bio}</p>
+                  <p className="">{user.profile.bio}</p>
                 </div>
               )}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            <div className="bg-white rounded-xl shadow p-6 md:col-span-2">
+            <div className=" rounded-xl shadow-lg overflow-hidden p-6 md:col-span-2">
               <h2 className="text-lg font-semibold mb-4">Skills</h2>
               <div className="flex flex-wrap gap-2">
                 {user.profile.skills.map((skill, index) => (
@@ -283,12 +288,12 @@ const UserDetail = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow p-6">
+            <div className=" rounded-xl shadow-lg overflow-hidden p-6">
               <h2 className="text-lg font-semibold mb-4">Contact</h2>
               <div className="space-y-3">
                 <a
                   href={`mailto:${user.email}`}
-                  className="flex items-center gap-3 text-gray-600 hover:text-primary transition-colors"
+                  className="flex items-center gap-3  hover:text-primary transition-colors"
                 >
                   <Mail className="w-4 h-4" />
                   <span>Email</span>
@@ -297,7 +302,7 @@ const UserDetail = () => {
                   href={user.profile.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-gray-600 hover:text-primary transition-colors"
+                  className="flex items-center gap-3  hover:text-primary transition-colors"
                 >
                   <Linkedin className="w-4 h-4" />
                   <span>LinkedIn</span>
@@ -306,7 +311,7 @@ const UserDetail = () => {
                   href={user.profile.github}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-gray-600 hover:text-primary transition-colors"
+                  className="flex items-center gap-3  hover:text-primary transition-colors"
                 >
                   <Github className="w-4 h-4" />
                   <span>GitHub</span>
@@ -315,7 +320,7 @@ const UserDetail = () => {
                   href={user.profile.socialLinks.portfolio}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-gray-600 hover:text-primary transition-colors"
+                  className="flex items-center gap-3  hover:text-primary transition-colors"
                 >
                   <Globe className="w-4 h-4" />
                   <span>Portfolio</span>

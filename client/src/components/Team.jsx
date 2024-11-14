@@ -112,20 +112,14 @@ const Team = () => {
       <div className="container mx-auto py-12 px-4">
         {/* Header */}
         <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Discover Team Members
-          </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto font-bold">
-            Connect with talented professionals across different fields. Find
-            the perfect teammate for your next project.
-          </p>
+          <h1 className="text-4xl font-bold  mb-4">Discover Your Future Team Members</h1>
         </div>
         {/* Profession Filters */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
             <Sheet>
               <SheetTrigger asChild>
-                <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
+                <button className="flex items-center gap-2  hover:text-gray-400 transition-colors">
                   <span className="text-sm font-medium">
                     Show all professions
                   </span>
@@ -235,7 +229,7 @@ const Team = () => {
 
         {/* Results Summary */}
         <div className="mb-8">
-          <p className="text-gray-600">
+          <p className="">
             Showing {filteredUsers.length}{" "}
             {selectedProfession === "All"
               ? "team members"
@@ -249,7 +243,7 @@ const Team = () => {
             <div
               key={user._id}
               onClick={() => handleUserClick(user)}
-              className="bg-white rounded-xl shadow-lg hover:shadow-xl p-6 cursor-pointer transition-all duration-300 hover:scale-[1.02] border border-gray-100"
+              className=" rounded-xl shadow-lg hover:shadow-xl p-6 cursor-pointer transition-all duration-300 hover:scale-[1.02] border "
             >
               <div className="flex flex-col items-center">
                 <div className="relative mb-4">
@@ -269,10 +263,8 @@ const Team = () => {
                   />
                 </div>
 
-                <h3 className="text-xl font-bold text-gray-900">
-                  {user.username}
-                </h3>
-                <div className="flex items-center gap-2 mt-1 text-gray-600">
+                <h3 className="text-xl font-bold ">{user.username}</h3>
+                <div className="flex items-center gap-2 mt-1 ">
                   <Briefcase className="w-4 h-4" />
                   <p className="text-sm">{user.profession}</p>
                 </div>
@@ -311,7 +303,7 @@ const Team = () => {
                     href={user.profile.socialLinks.github}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-600 hover:text-primary transition-colors"
+                    className=" hover:text-primary transition-colors"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Github className="h-5 w-5" />
@@ -322,7 +314,7 @@ const Team = () => {
                     href={user.profile.socialLinks.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-600 hover:text-primary transition-colors"
+                    className=" hover:text-primary transition-colors"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Linkedin className="h-5 w-5" />
@@ -330,7 +322,7 @@ const Team = () => {
                 )}
                 <a
                   href={`mailto:${user.email}`}
-                  className="text-gray-600 hover:text-primary transition-colors"
+                  className=" hover:text-primary transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Mail className="h-5 w-5" />

@@ -69,11 +69,15 @@ const ProjectInvitations = () => {
 
   const assignMemberToProject = async (projectId, memberId, role) => {
     try {
+      // For debugging
+      console.log("Sending request with:", { projectId, memberId, role });
+
       const response = await axios.post(
         `${PROJECT_API_END_POINT}/assign-member`,
         { projectId, memberId, role },
         { withCredentials: true }
       );
+
       if (response.data.success) {
         toast.success("You have been added to the project successfully.");
       } else {
@@ -81,11 +85,12 @@ const ProjectInvitations = () => {
       }
     } catch (error) {
       console.error("Error assigning member to project:", error);
+      console.error("Request payload:", { projectId, memberId, role });
       toast.error(
         error.response?.data?.message || "Failed to add member to project"
       );
     }
-  };
+  };;
 
   return (
     <div className="space-y-4">

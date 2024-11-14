@@ -16,14 +16,6 @@ const projectSchema = new mongoose.Schema(
         required: true,
       },
     ],
-    maxTeamSize: {
-      type: Number,
-      required: true,
-    },
-    location: {
-      type: String,
-      required: true,
-    },
     logo: {
       type: String,
     },
@@ -55,19 +47,6 @@ const projectSchema = new mongoose.Schema(
         ref: "Request",
       },
     ],
-    status: {
-      type: String,
-      enum: ["Planning", "In Progress", "On Hold", "Completed", "Cancelled"],
-      default: "Planning",
-    },
-    isOpen: {
-      type: Boolean,
-      default: true,
-    },
-    openPositions: [String],
-    startDate: Date,
-    endDate: Date,
-    tags: [String],
     milestones: [
       {
         title: String,
@@ -98,11 +77,6 @@ const projectSchema = new mongoose.Schema(
       ],
       required: true, 
     },
-    budget: {
-      estimated: Number,
-      current: Number,
-      currency: String,
-    },
     socialLinks: {
       instagram: String,
       twitter: String,
@@ -110,8 +84,6 @@ const projectSchema = new mongoose.Schema(
       github: String,
       website: String,
     },
-    startDate: { type: Date, required: false },
-    endDate: { type: Date, required: false },
   },
   { timestamps: true }
 );

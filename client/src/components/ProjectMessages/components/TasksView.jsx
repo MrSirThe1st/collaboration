@@ -1,13 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { toast } from "sonner";
+import { DragDropContext, Droppable } from "@hello-pangea/dnd";
+import { Plus } from "lucide-react";
+import { setTasks, updateTasksOrder, addTask } from "@/redux/taskMilestoneSlice";
+import { TASK_API_END_POINT } from "@/utils/constant";
+import TaskCard from "./taskComponents/TaskCard";
+import NewTaskDialog from "./taskComponents/NewTaskDialog";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -15,78 +18,159 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { Plus, MoreHorizontal } from "lucide-react";
 
 const TasksView = () => {
-  const [columns, setColumns] = useState({
+  const dispatch = useDispatch();
+  const { id: projectId } = useParams();
+  const [showNewTaskDialog, setShowNewTaskDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Get data from Redux store
+  const tasks = useSelector((state) => state.taskMilestone.tasks);
+  const milestones = useSelector((state) => state.taskMilestone.milestones);
+  const taskFilters = useSelector((state) => state.taskMilestone.taskFilters);
+  const members = useSelector(
+    (state) => state.project.singleProject?.members || []
+  );
+
+  // Local state for new task form
+  const [newTask, setNewTask] = useState({
+    title: "",
+    description: "",
+    priority: "medium",
+    assignedRole: "",
+    milestoneId: "",
+    dueDate: "",
+  });
+
+  // Organized tasks by status
+  const columns = {
     todo: {
       id: "todo",
       title: "To Do",
-      tasks: [
-        {
-          id: "1",
-          title: "Design homepage",
-          assignee: "John",
-          priority: "high",
-        },
-        {
-          id: "2",
-          title: "Setup database",
-          assignee: "Sarah",
-          priority: "medium",
-        },
-      ],
+      tasks: tasks.filter((task) => task.status === "todo"),
     },
     inProgress: {
       id: "inProgress",
       title: "In Progress",
-      tasks: [
-        {
-          id: "3",
-          title: "Implement auth",
-          assignee: "Mike",
-          priority: "high",
-        },
-      ],
+      tasks: tasks.filter((task) => task.status === "in_progress"), // Match backend status
     },
     done: {
       id: "done",
       title: "Done",
-      tasks: [
-        { id: "4", title: "Project setup", assignee: "Emma", priority: "low" },
-      ],
+      tasks: tasks.filter((task) => task.status === "completed"),
     },
-  });
+  };
 
-  const onDragEnd = (result) => {
-    const { source, destination } = result;
+  // Fetch tasks on component mount
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(
+          `${TASK_API_END_POINT}/project/${projectId}`,
+          {
+            withCredentials: true,
+          }
+        );
+        if (res.data.success) {
+          dispatch(setTasks(res.data.tasks));
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to fetch tasks");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (projectId) {
+      fetchTasks();
+    }
+  }, [projectId, dispatch]);
+
+  // Handle drag end
+  const onDragEnd = async (result) => {
+    const { source, destination, draggableId } = result;
     if (!destination) return;
 
-    const sourceCol = columns[source.droppableId];
-    const destCol = columns[destination.droppableId];
-    const sourceTasks = [...sourceCol.tasks];
-    const destTasks =
-      source.droppableId === destination.droppableId
-        ? sourceTasks
-        : [...destCol.tasks];
+    try {
+      // Map the droppableId to the correct status value
+      const statusMap = {
+        todo: "todo",
+        inProgress: "in_progress",
+        done: "completed",
+      };
 
-    const [removed] = sourceTasks.splice(source.index, 1);
-    destTasks.splice(destination.index, 0, removed);
+      const newStatus = statusMap[destination.droppableId];
 
-    setColumns({
-      ...columns,
-      [source.droppableId]: {
-        ...sourceCol,
-        tasks: sourceTasks,
-      },
-      [destination.droppableId]: {
-        ...destCol,
-        tasks: destTasks,
-      },
-    });
+      // Find the task that's being moved
+      const updatedTask = tasks.find((task) => task._id === draggableId);
+
+      // Optimistically update the task in Redux before the API call
+      const updatedTasks = tasks.map((task) =>
+        task._id === draggableId ? { ...task, status: newStatus } : task
+      );
+
+      // Update Redux immediately
+      dispatch(setTasks(updatedTasks));
+
+      // Make API call
+      const response = await axios.patch(
+        `${TASK_API_END_POINT}/status/${draggableId}`,
+        {
+          status: newStatus,
+        },
+        { withCredentials: true }
+      );
+
+      if (!response.data.success) {
+        dispatch(setTasks(tasks));
+        toast.error("Failed to update task status");
+      }
+    } catch (error) {
+      console.error("Error updating task status:", error);
+      // Revert changes on error
+      dispatch(setTasks(tasks));
+      toast.error(
+        error.response?.data?.message || "Failed to update task status"
+      );
+    }
   };
+
+  // Create new task
+const handleCreateTask = async () => {
+  try {
+    setLoading(true);
+    const taskData = {
+      ...newTask,
+      milestoneId: newTask.milestoneId === "none" ? null : newTask.milestoneId,
+    };
+
+    const res = await axios.post(
+      `${TASK_API_END_POINT}/create`,
+      { ...taskData, projectId },
+      { withCredentials: true }
+    );
+
+    if (res.data.success) {
+      dispatch(addTask(res.data.task));
+      setShowNewTaskDialog(false);
+      setNewTask({
+        title: "",
+        description: "",
+        priority: "medium",
+        assignedRole: "",
+        milestoneId: "",
+        dueDate: "",
+      });
+      toast.success("Task created successfully");
+    }
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Failed to create task");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -100,31 +184,53 @@ const TasksView = () => {
         return "bg-gray-500";
     }
   };
-
+  console.log("Members data:", members);
   return (
     <div className="h-full">
+      {/* Header Section */}
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Tasks</h2>
-          <p className="text-muted-foreground">Manage your project tasks</p>
+          <p className="text-muted-foreground">
+            {loading ? "Loading tasks..." : `${tasks.length} total tasks`}
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <Select defaultValue="all">
+          <Select
+            value={taskFilters.assignee}
+            onValueChange={(value) =>
+              dispatch(setTaskFilters({ assignee: value }))
+            }
+          >
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Filter by assignee" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Members</SelectItem>
-              <SelectItem value="john">John Doe</SelectItem>
-              <SelectItem value="sarah">Sarah Smith</SelectItem>
+              {members.map(
+                (member) =>
+                  member.user && (
+                    <SelectItem
+                      key={member.user}
+                      value={
+                        typeof member.user === "string"
+                          ? member.user
+                          : member.user._id
+                      }
+                    >
+                      {member.role || "Unknown Role"}
+                    </SelectItem>
+                  )
+              )}
             </SelectContent>
           </Select>
-          <Button>
+          <Button onClick={() => setShowNewTaskDialog(true)}>
             <Plus className="w-4 h-4 mr-2" /> Add Task
           </Button>
         </div>
       </div>
 
+      {/* Task Board */}
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {Object.values(columns).map((column) => (
@@ -144,44 +250,12 @@ const TasksView = () => {
                     className="space-y-2"
                   >
                     {column.tasks.map((task, index) => (
-                      <Draggable
-                        key={task.id}
-                        draggableId={task.id}
+                      <TaskCard
+                        key={task._id}
+                        task={task}
                         index={index}
-                      >
-                        {(provided) => (
-                          <Card
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className="bg-card"
-                          >
-                            <CardContent className="p-4">
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <h4 className="font-medium">{task.title}</h4>
-                                  <p className="text-sm text-muted-foreground">
-                                    Assigned to {task.assignee}
-                                  </p>
-                                </div>
-                                <Button variant="ghost" size="icon">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </div>
-                              <div className="mt-2 flex items-center gap-2">
-                                <div
-                                  className={`w-2 h-2 rounded-full ${getPriorityColor(
-                                    task.priority
-                                  )}`}
-                                />
-                                <span className="text-xs text-muted-foreground capitalize">
-                                  {task.priority} Priority
-                                </span>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        )}
-                      </Draggable>
+                        getPriorityColor={getPriorityColor}
+                      />
                     ))}
                     {provided.placeholder}
                   </div>
@@ -191,6 +265,18 @@ const TasksView = () => {
           ))}
         </div>
       </DragDropContext>
+
+      {/* New Task Dialog */}
+      <NewTaskDialog
+        open={showNewTaskDialog}
+        onOpenChange={setShowNewTaskDialog}
+        newTask={newTask}
+        setNewTask={setNewTask}
+        handleCreateTask={handleCreateTask}
+        loading={loading}
+        milestones={milestones}
+        members={members}
+      />
     </div>
   );
 };

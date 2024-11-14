@@ -63,7 +63,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="bg-white">
+    <div >
       <div className="flex items-center justify-between mx-auto max-w-7xl h-16">
         <div>
           <h1 className="text-2xl font-bold">
@@ -101,7 +101,7 @@ const Navbar = () => {
                 <Button variant="outline">Login</Button>
               </Link>
               <Link to="/signup">
-                <Button className="bg-[#6A38C2] hover:bg-[#5b30a6]">
+                <Button >
                   Signup
                 </Button>
               </Link>

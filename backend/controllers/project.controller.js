@@ -3,83 +3,64 @@ import { User } from "../models/user.model.js";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 
+// In project.controller.js
+
 export const postProject = async (req, res) => {
   try {
     const {
       title,
       description,
       requirements,
-      maxTeamSize,
-      location,
       groupId,
-      status,
-      isOpen,
-      openPositions,
-      tags,
+      category,
       skills,
-      communicationPlatform,
-      communicationLink,
-      budgetEstimated,
-      budgetCurrent,
-      budgetCurrency,
-      socialInstagram,
-      socialTwitter,
-      socialLinkedin,
-      socialGithub,
-      socialWebsite,
-      startDate,
-      endDate,
-      category
+      communication,
+      socialLinks,
     } = req.body;
-    const userId = req.id;
 
-    const file = req.file;
-    const fileUri = getDataUri(file);
-    const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
-    const logo = cloudResponse.secure_url;
+    // Parse JSON strings back to objects
+    const parsedRequirements = JSON.parse(requirements);
+    const parsedSkills = JSON.parse(skills);
+    const parsedCommunication = JSON.parse(communication);
+    const parsedSocialLinks = JSON.parse(socialLinks);
 
-    if (
-      !title ||
-      !description ||
-      !requirements ||
-      !maxTeamSize ||
-      !location ||
-      !groupId ||
-      !category
-    ) {
+    if (!title || !description || !requirements || !groupId || !category) {
       return res.status(400).json({
-        message: "Something is missing.",
+        message: "Required fields are missing.",
         success: false,
       });
+    }
+
+    // Handle file upload
+    let logo;
+    if (req.file) {
+      const fileUri = getDataUri(req.file);
+      const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+      logo = cloudResponse.secure_url;
     }
 
     const project = await Project.create({
       title,
       description,
-      requirements: requirements.split(","),
-      location,
-      maxTeamSize,
+      requirements: parsedRequirements,
       group: groupId,
-      created_by: userId,
+      created_by: req.id,
       logo,
-      status,
-      isOpen,
-      openPositions: openPositions ? openPositions.split(",") : [],
-      tags: tags ? tags.split(",") : [],
-      skills: skills ? skills.split(",") : [],
-      communicationPlatform,
-      communicationLink,
-      budgetEstimated,
-      budgetCurrent,
-      budgetCurrency,
-      socialInstagram,
-      socialTwitter,
-      socialLinkedin,
-      socialGithub,
-      socialWebsite,
-      startDate,
-      endDate,
-      category
+      skills: parsedSkills,
+      communication: parsedCommunication,
+      socialLinks: parsedSocialLinks,
+      category,
+      members: [
+        {
+          user: req.id,
+          role: "Admin",
+        },
+      ],
+    });
+
+    // Add project to user's projects
+    await User.findByIdAndUpdate(req.id, {
+      $push: { project: project._id },
     });
 
     return res.status(201).json({
@@ -88,7 +69,7 @@ export const postProject = async (req, res) => {
       success: true,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error creating project:", error);
     return res.status(500).json({
       message: "Internal Server Error",
       success: false,

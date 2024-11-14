@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 
 // This goes inside your existing ProjectPage component
-const ChannelSection = () => {
+const ChannelsList = () => {
   const [showNewChannelDialog, setShowNewChannelDialog] = useState(false);
   const [channelType, setChannelType] = useState("public");
   const [selectedRoles, setSelectedRoles] = useState([]);
@@ -150,3 +150,5 @@ const ChannelSection = () => {
     </div>
   );
 };
+
+export default ChannelsList;

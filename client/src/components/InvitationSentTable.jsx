@@ -54,10 +54,10 @@ const InvitationSentCard = () => {
           allSentInvitations.map((sentInvitation) => (
             <div
               key={sentInvitation._id}
-              className="p-4 bg-white shadow-sm rounded-md flex justify-between items-center space-x-4"
+              className="p-4 border shadow-sm rounded-md flex justify-between items-center space-x-4"
             >
               <div className="flex flex-col space-y-1">
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-medium ">
                   {sentInvitation.project?.title || "N/A"}
                 </span>
                 <span className="text-xs text-gray-500">

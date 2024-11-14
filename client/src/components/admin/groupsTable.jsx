@@ -41,13 +41,13 @@ const GroupsCardLayout = () => {
           </div>
 
           {/* Right Section: Additional Info and Actions */}
-          <div className="bg-white flex flex-col justify-between p-4 w-2/3">
+          <div className=" flex flex-col justify-between p-4 w-2/3">
             <div>
-              <p className="text-sm text-gray-500 mb-2">{group.name}</p>
-              <p className="text-sm text-gray-500 mb-2">
+              <p className="text-sm  mb-2">{group.name}</p>
+              <p className="text-sm  mb-2">
                 Created At: {group.createdAt.split("T")[0]}
               </p>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm  mb-4">
                 Status: {group.status || "Active"}
               </p>
             </div>

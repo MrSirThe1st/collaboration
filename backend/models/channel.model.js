@@ -12,37 +12,20 @@ const channelSchema = new mongoose.Schema(
       ref: "Project",
       required: true,
     },
-    type: {
+    role: {
       type: String,
-      enum: ["public", "private", "role-based"],
-      default: "public",
+      required: true,
     },
-    allowedRoles: [
-      {
-        type: String,
-      },
-    ],
     members: [
       {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-        role: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
       },
     ],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    },
-    lastMessage: {
-      content: String,
-      sender: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-      timestamp: Date,
     },
     isDeleted: {
       type: Boolean,

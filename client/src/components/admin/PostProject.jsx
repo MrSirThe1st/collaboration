@@ -18,8 +18,6 @@ import { PROJECT_API_END_POINT } from "@/utils/constant";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import DatePickerWithRange from "../DatePickerWithRange";
-
 
 const CATEGORIES = [
   { value: "Web Development", label: "Web Development" },
@@ -28,36 +26,22 @@ const CATEGORIES = [
   { value: "Data Science", label: "Data Science" },
 ];
 
-
 const PostProject = () => {
   const [input, setInput] = useState({
     title: "",
     description: "",
     requirements: "",
-    location: "",
-    maxTeamSize: 0,
     groupId: "",
     file: null,
-    status: "Planning",
-    isOpen: true,
-    openPositions: "",
-    dateRange: {
-      from: null,
-      to: null,
-    },
-    tags: "",
     skills: "",
     communicationPlatform: "",
     communicationLink: "",
-    budgetEstimated: 0,
-    budgetCurrent: 0,
-    budgetCurrency: "USD",
     socialInstagram: "",
     socialTwitter: "",
     socialLinkedin: "",
     socialGithub: "",
     socialWebsite: "",
-    category: ""
+    category: "",
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -79,16 +63,60 @@ const PostProject = () => {
     try {
       setLoading(true);
       const formData = new FormData();
-      for (const key in input) {
-        if (key === "file" && input[key]) {
-          formData.append("file", input[key]);
-        } else if (key === "dateRange") {
-          formData.append("startDate", input.dateRange.from);
-          formData.append("endDate", input.dateRange.to);
-        } else if (Array.isArray(input[key])) {
-          formData.append(key, JSON.stringify(input[key]));
-        } else if (input[key] !== null && input[key] !== undefined) {
-          formData.append(key, input[key]);
+
+      // Create communication and social links objects
+      const communication = {
+        platform: input.communicationPlatform || "",
+        link: input.communicationLink || "",
+      };
+
+      const socialLinks = {
+        instagram: input.socialInstagram || "",
+        twitter: input.socialTwitter || "",
+        linkedin: input.socialLinkedin || "",
+        github: input.socialGithub || "",
+        website: input.socialWebsite || "",
+      };
+
+      // Split requirements and skills into arrays
+      const requirements = input.requirements
+        ? input.requirements
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
+        : [];
+
+      const skills = input.skills
+        ? input.skills
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
+        : [];
+
+      // Append all fields to FormData
+      formData.append("title", input.title);
+      formData.append("description", input.description);
+      formData.append("requirements", JSON.stringify(requirements));
+      formData.append("skills", JSON.stringify(skills));
+      formData.append("groupId", input.groupId);
+      formData.append("category", input.category);
+      formData.append("communication", JSON.stringify(communication));
+      formData.append("socialLinks", JSON.stringify(socialLinks));
+
+      if (input.file) {
+        formData.append("file", input.file);
+      }
+
+      // Log the data being sent
+      console.log("Sending data:");
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+        // If it's a JSON string, also log the parsed version
+        try {
+          const parsed = JSON.parse(value);
+          console.log(`${key} (parsed):`, parsed);
+        } catch (e) {
+          // Not JSON, ignore
         }
       }
 
@@ -96,13 +124,20 @@ const PostProject = () => {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
+
       if (res.data.success) {
         toast.success(res.data.message);
-        navigate("/admin/group");
+        navigate(`/admin/group/${input.groupId}`);
       }
     } catch (error) {
       console.error("Error submitting project:", error);
-      toast.error(error.response?.data?.message || "An error occurred");
+      // Log more detailed error information
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        toast.error(error.response.data?.message || "Server error occurred");
+      } else {
+        toast.error("An error occurred while submitting the project");
+      }
     } finally {
       setLoading(false);
     }
@@ -117,13 +152,9 @@ const PostProject = () => {
     <div className="flex items-center justify-center w-screen my-5">
       <form
         onSubmit={submitHandler}
-        className="p-8 max-w-4xl border border-gray-200 shadow-lg rounded-md"
+        className="p-8 max-w-4xl border  shadow-lg rounded-md"
       >
         <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
-            <Label>Project Date Range</Label>
-            <DatePickerWithRange input={input} setInput={setInput} />
-          </div>
           <div>
             <Label>Title</Label>
             <Input
@@ -154,26 +185,6 @@ const PostProject = () => {
             />
           </div>
           <div>
-            <Label>Location</Label>
-            <Input
-              type="text"
-              name="location"
-              value={input.location}
-              onChange={changeEventHandler}
-              required
-            />
-          </div>
-          <div>
-            <Label>Max Team Size</Label>
-            <Input
-              type="number"
-              name="maxTeamSize"
-              value={input.maxTeamSize}
-              onChange={changeEventHandler}
-              required
-            />
-          </div>
-          <div>
             <Label>Group</Label>
             <Select
               name="groupId"
@@ -199,61 +210,6 @@ const PostProject = () => {
             <Input type="file" accept="image/*" onChange={changeFileHandler} />
           </div>
           <div>
-            <Label>Status</Label>
-            <Select
-              name="status"
-              onValueChange={(value) => selectChangeHandler("status", value)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {[
-                    "Planning",
-                    "In Progress",
-                    "On Hold",
-                    "Completed",
-                    "Cancelled",
-                  ].map((status) => (
-                    <SelectItem value={status} key={status}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Is Open</Label>
-            <Input
-              type="checkbox"
-              name="isOpen"
-              checked={input.isOpen}
-              onChange={changeEventHandler}
-            />
-          </div>
-          <div>
-            <Label>Open Positions (comma-separated)</Label>
-            <Input
-              type="text"
-              name="openPositions"
-              value={input.openPositions}
-              onChange={changeEventHandler}
-            />
-          </div>
-
-          <div>
-            <Label>Tags (comma-separated)</Label>
-            <Input
-              type="text"
-              name="tags"
-              value={input.tags}
-              onChange={changeEventHandler}
-            />
-          </div>
-          <div>
             <Label>Skills (comma-separated)</Label>
             <Input
               type="text"
@@ -277,33 +233,6 @@ const PostProject = () => {
               type="text"
               name="communicationLink"
               value={input.communicationLink}
-              onChange={changeEventHandler}
-            />
-          </div>
-          <div>
-            <Label>Estimated Budget</Label>
-            <Input
-              type="number"
-              name="budgetEstimated"
-              value={input.budgetEstimated}
-              onChange={changeEventHandler}
-            />
-          </div>
-          <div>
-            <Label>Current Budget</Label>
-            <Input
-              type="number"
-              name="budgetCurrent"
-              value={input.budgetCurrent}
-              onChange={changeEventHandler}
-            />
-          </div>
-          <div>
-            <Label>Budget Currency</Label>
-            <Input
-              type="text"
-              name="budgetCurrency"
-              value={input.budgetCurrency}
               onChange={changeEventHandler}
             />
           </div>
@@ -358,6 +287,7 @@ const PostProject = () => {
               name="category"
               onValueChange={(value) => selectChangeHandler("category", value)}
               required
+              className={!input.category ? "border-red-500" : ""}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select Category" />

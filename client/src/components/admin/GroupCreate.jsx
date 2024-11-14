@@ -19,10 +19,10 @@ const GroupCreate = () => {
 
   const registerNewGroup = async () => {
     try {
-      const formData = new FormData(); // Create FormData object
+      const formData = new FormData(); 
       formData.append("name", groupName);
       if (cover) {
-        formData.append("file", cover); // Append cover file if available
+        formData.append("file", cover); 
       }
 
       const res = await axios.post(

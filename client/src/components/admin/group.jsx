@@ -10,7 +10,7 @@ import {
   COMPANY_API_END_POINT,
   APPLICATION_API_END_POINT,
 } from "@/utils/constant";
-import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Plus } from "lucide-react";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import {
   Card,
@@ -29,6 +29,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Group = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -44,6 +51,13 @@ const Group = () => {
   const dispatch = useDispatch();
   const { singleGroup } = useSelector((state) => state.group);
   const { allAdminProjects } = useSelector((state) => state.project);
+
+  useEffect(() => {
+    if (!id) {
+      navigate("/");
+      return;
+    }
+  }, [id, dispatch, navigate]);
 
   const fetchRequesterInfo = async (userId) => {
     try {
@@ -256,20 +270,32 @@ const Group = () => {
   return (
     <div className="max-w-6xl mx-auto my-10 px-4">
       {singleGroup && (
-        <div className="my-5 bg-white rounded-lg shadow p-6">
-          <div className="flex items-center space-x-4">
-            <img
-              src={singleGroup.cover || "default-group-logo.png"}
-              alt={singleGroup.name}
-              className="w-16 h-16 rounded-full object-cover"
-            />
-            <div>
-              <h1 className="text-2xl font-bold">{singleGroup.name}</h1>
-              <p className="text-sm text-gray-500">
-                Status: {singleGroup.status}
-              </p>
-              <p className="mt-2">{singleGroup.description}</p>
+        <div className="my-5 rounded-lg  shadow-lg p-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-6">
+              <img
+                src={singleGroup.cover || "default-group-logo.png"}
+                alt={singleGroup.name}
+                className="w-20 h-20 rounded-full object-cover ring-2 ring-primary/10"
+              />
+              <div>
+                <h1 className="text-3xl font-bold">{singleGroup.name}</h1>
+                <Badge variant="secondary" className="mt-2">
+                  {singleGroup.status}
+                </Badge>
+                <p className="mt-2 text-muted-foreground max-w-2xl">
+                  {singleGroup.description}
+                </p>
+              </div>
             </div>
+            <Button
+              onClick={() => navigate("/admin/projects/create")}
+              size="lg"
+              className="flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Create Project
+            </Button>
           </div>
         </div>
       )}
@@ -279,7 +305,7 @@ const Group = () => {
         <div className="grid grid-cols-1 gap-6">
           {allAdminProjects.map((project) => (
             <Card key={project._id} className="overflow-hidden">
-              <CardHeader className="bg-gray-50">
+              <CardHeader className="">
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-xl">{project.title}</CardTitle>
@@ -303,7 +329,6 @@ const Group = () => {
                   <Badge variant="secondary">
                     {project.members.length} Members
                   </Badge>
-                  <Badge variant="secondary">{project.status}</Badge>
                   <Badge variant="secondary">
                     {projectRequests[project._id]?.length || 0} Requests
                   </Badge>
@@ -321,7 +346,7 @@ const Group = () => {
                         return (
                           <div
                             key={request._id}
-                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                            className="flex items-center justify-between p-4 border rounded-lg"
                           >
                             <div className="flex items-center space-x-4">
                               <Avatar className="h-10 w-10">
@@ -354,7 +379,7 @@ const Group = () => {
                                 <>
                                   <Button
                                     variant="outline"
-                                    className="bg-green-50 text-green-600 hover:bg-green-100"
+                                    className="bg-green-50 text-green-600 "
                                     onClick={() =>
                                       handleRequestStatus(
                                         request._id,
@@ -369,7 +394,7 @@ const Group = () => {
                                   </Button>
                                   <Button
                                     variant="outline"
-                                    className="bg-red-50 text-red-600 hover:bg-red-100"
+                                    className="bg-red-50 text-red-600 "
                                     onClick={() =>
                                       handleRequestStatus(
                                         request._id,
@@ -403,21 +428,21 @@ const Group = () => {
             <DialogTitle>Assign Role to Member</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className="w-full rounded border p-2"
-            >
-              <option value="">Select Role</option>
-              {selectedRequest &&
-                allAdminProjects
-                  .find((p) => p._id === selectedRequest.projectId)
-                  ?.requirements.map((role) => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
-                  ))}
-            </select>
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                {selectedRequest &&
+                  allAdminProjects
+                    .find((p) => p._id === selectedRequest.projectId)
+                    ?.requirements.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {role}
+                      </SelectItem>
+                    ))}
+              </SelectContent>
+            </Select>
           </div>
           <DialogFooter>
             <Button

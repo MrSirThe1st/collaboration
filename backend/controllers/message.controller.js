@@ -5,7 +5,7 @@ import { Channel } from "../models/channel.model.js";
 export const sendMessage = async (req, res) => {
   try {
     const { channelId, content, type = "text", attachments = [] } = req.body;
-    const userId = req.user._id;
+    const userId = req.id;
 
     // Check channel exists and user has access
     const channel = await Channel.findById(channelId);
@@ -59,7 +59,7 @@ export const getChannelMessages = async (req, res) => {
   try {
     const { channelId } = req.params;
     const { page = 1, limit = 50 } = req.query;
-    const userId = req.user._id;
+    const userId = req.id;
 
     // Check channel access
     const channel = await Channel.findById(channelId);
@@ -108,7 +108,7 @@ export const getChannelMessages = async (req, res) => {
 export const markMessagesAsRead = async (req, res) => {
   try {
     const { channelId } = req.params;
-    const userId = req.user._id;
+    const userId = req.id;
 
     await Message.updateMany(
       {
