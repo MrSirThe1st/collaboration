@@ -1,3 +1,4 @@
+// milestone.model.js
 import mongoose from "mongoose";
 
 const milestoneSchema = new mongoose.Schema(
@@ -35,19 +36,19 @@ const milestoneSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
+    toJSON: { virtuals: true }, // Enable virtuals in JSON
+    toObject: { virtuals: true }, // Enable virtuals in Objects
   }
 );
 
-// Virtual to get all tasks associated with this milestone
+// Define the tasks virtual BEFORE creating the model
 milestoneSchema.virtual("tasks", {
-  ref: "Task",
-  localField: "_id",
-  foreignField: "milestone",
+  ref: "Task", // The model to use
+  localField: "_id", // Find tasks where `localField`
+  foreignField: "milestone", // is equal to this milestone's `_id`
 });
 
-// Static method to update milestone progress based on associated tasks
+// Static method to update milestone progress
 milestoneSchema.statics.updateMilestoneProgress = async function (milestoneId) {
   const Task = mongoose.model("Task");
   const tasks = await Task.find({ milestone: milestoneId });
@@ -66,4 +67,5 @@ milestoneSchema.statics.updateMilestoneProgress = async function (milestoneId) {
   });
 };
 
+// Create and export the model
 export const Milestone = mongoose.model("Milestone", milestoneSchema);

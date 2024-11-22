@@ -143,3 +143,41 @@ export const getSentInvitations = async (req, res) => {
     });
   }
 };
+
+
+export const deleteInvitation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const invitation = await Invitation.findById(id);
+
+    if (!invitation) {
+      return res.status(404).json({
+        success: false,
+        message: "Invitation not found",
+      });
+    }
+
+    if (
+      invitation.inviter.toString() !== req.id &&
+      invitation.recipient.toString() !== req.id
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to delete this invitation",
+      });
+    }
+
+    await Invitation.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Invitation deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error in deleteInvitation:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};

@@ -74,19 +74,14 @@ const LatestProjectCards = ({ project }) => {
       className="w-64 rounded-lg overflow-hidden shadow-md bg-white cursor-pointer hover:shadow-xl transition-shadow duration-300"
     >
       <div className="relative h-20">
-        <div className="absolute inset-0">
-          {project.logo ? (
-            <img
-              src={project.logo}
-              alt={`${project?.title || "Project"} Logo`}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-r from-purple-700 to-indigo-800" />
-          )}
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-900/80 to-indigo-900/80" />
-        </div>
+        {project.logo && (
+          <img
+            src={project.logo}
+            alt={`${project?.title || "Project"} Logo`}
+            className="h-full w-full object-cover"
+          />
+        )}
+        <div className="absolute -bottom-6 left-4"></div>
         <div className="absolute -bottom-6 left-4 ">
           <div className="w-12 h-12 bg-pink-400 rounded-full flex items-center justify-center shadow-md">
             {creatorInfo?.profile?.profilePhoto ? (

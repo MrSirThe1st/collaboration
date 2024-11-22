@@ -13,7 +13,7 @@ const taskSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["todo", "in_progress", "in_review", "completed"],
+      enum: ["todo", "in_progress", "completed"],
       default: "todo",
     },
     priority: {
@@ -29,6 +29,7 @@ const taskSchema = new mongoose.Schema(
     milestone: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Milestone",
+      required: true,
     },
     assignees: [
       {
@@ -41,6 +42,7 @@ const taskSchema = new mongoose.Schema(
     ],
     assignedRole: {
       type: String,
+      required: true,
     },
     dueDate: Date,
     createdBy: {

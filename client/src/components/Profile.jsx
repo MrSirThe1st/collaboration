@@ -80,7 +80,7 @@ const Profile = () => {
       <main className="flex flex-1 flex-col gap-4 p-2 lg:gap-2 lg:px-6">
         <div className="flex flex-1 items-center my-5 p-3 rounded-lg border border-dashed shadow-sm">
           <div className="flex-col items-center gap-1 text-center w-full">
-            <div className="max-w-4xl mx-auto bg-white border border-gray-200 rounded-2xl my-5 p-8">
+            <div className="max-w-4xl mx-auto rounded-2xl my-5 p-8">
               <div className="flex justify-between items-start mb-8">
                 <div className="flex items-center gap-6">
                   <div className="relative">
@@ -119,7 +119,7 @@ const Profile = () => {
                         placeholder="Tell us about yourself..."
                       />
                     ) : (
-                      <p className="text-gray-600">
+                      <p>
                         {user?.profile?.bio || "No bio yet"}
                       </p>
                     )}
@@ -227,7 +227,7 @@ const Profile = () => {
                             href={user.profile.socialLinks.github}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
+                            className="hover:underline"
                           >
                             GitHub
                           </a>
@@ -237,7 +237,7 @@ const Profile = () => {
                             href={user.profile.socialLinks.linkedin}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
+                            className=" hover:underline"
                           >
                             LinkedIn
                           </a>
@@ -247,7 +247,7 @@ const Profile = () => {
                             href={user.profile.socialLinks.portfolio}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
+                            className=" hover:underline"
                           >
                             Portfolio
                           </a>

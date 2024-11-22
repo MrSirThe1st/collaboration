@@ -45,23 +45,38 @@ export const createMilestone = async (req, res) => {
 export const getMilestones = async (req, res) => {
   try {
     const { projectId } = req.params;
-    const milestones = await Milestone.find({ projectId })
-      .populate({
-        path: "tasks",
-        select: "title status",
-        match: { isDeleted: false },
-      })
-      .sort({ order: 1 });
+
+    const milestones = await Milestone.find({ projectId }).populate({
+      path: "tasks",
+      select: "status title", // Only select fields you need
+    });
+
+    // Transform milestones to include task counts
+    const transformedMilestones = milestones.map((milestone) => {
+      const tasks = milestone.tasks || [];
+      const completedTasks = tasks.filter(
+        (task) => task.status === "completed"
+      ).length;
+
+      return {
+        ...milestone.toObject(),
+        tasks: {
+          completed: completedTasks,
+          total: tasks.length,
+        },
+      };
+    });
 
     return res.status(200).json({
       success: true,
-      milestones,
+      milestones: transformedMilestones,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error in getMilestones:", error);
     return res.status(500).json({
       success: false,
       message: "Server error",
+      error: error.message,
     });
   }
 };

@@ -1,15 +1,45 @@
 import React from "react";
-import { Clock, X, Check } from "lucide-react";
-import { useSelector } from "react-redux";
+import { Clock, X, Check, Trash2 } from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import { Button } from "./ui/button";
+import { INVITATION_API_END_POINT } from "@/utils/constant";
+import axios from "axios";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
   TooltipProvider,
-} from "./ui/tooltip"; 
+} from "./ui/tooltip";
+import { setAllSentInvitations } from "@/redux/projectSlice";
+import { toast } from "sonner";
 
 const InvitationSentCard = () => {
+  const dispatch = useDispatch();
   const { allSentInvitations = [] } = useSelector((store) => store.project);
+
+  const handleDeleteInvitation = async (invitationId) => {
+    try {
+      // Make API call to delete invitation
+      const response = await axios.delete(
+        `${INVITATION_API_END_POINT}/${invitationId}`,
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        // Update Redux state by filtering out the deleted invitation
+        const updatedInvitations = allSentInvitations.filter(
+          (invitation) => invitation._id !== invitationId
+        );
+        dispatch(setAllSentInvitations(updatedInvitations));
+        toast.success("Invitation deleted successfully");
+      }
+    } catch (error) {
+      console.error("Error deleting invitation:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to delete invitation"
+      );
+    }
+  };
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -17,7 +47,7 @@ const InvitationSentCard = () => {
         return (
           <Tooltip>
             <TooltipTrigger>
-              <Clock className="text-gray-400" />
+              <Clock className="text-gray-400 h-4 w-4" />
             </TooltipTrigger>
             <TooltipContent>Pending</TooltipContent>
           </Tooltip>
@@ -26,7 +56,7 @@ const InvitationSentCard = () => {
         return (
           <Tooltip>
             <TooltipTrigger>
-              <X className="text-red-500" />
+              <X className="text-red-500 h-4 w-4" />
             </TooltipTrigger>
             <TooltipContent>Rejected</TooltipContent>
           </Tooltip>
@@ -35,7 +65,7 @@ const InvitationSentCard = () => {
         return (
           <Tooltip>
             <TooltipTrigger>
-              <Check className="text-green-500" />
+              <Check className="text-green-500 h-4 w-4" />
             </TooltipTrigger>
             <TooltipContent>Accepted</TooltipContent>
           </Tooltip>
@@ -54,10 +84,10 @@ const InvitationSentCard = () => {
           allSentInvitations.map((sentInvitation) => (
             <div
               key={sentInvitation._id}
-              className="p-4 border shadow-sm rounded-md flex justify-between items-center space-x-4"
+              className="p-4 border shadow-sm rounded-md flex justify-between items-center"
             >
               <div className="flex flex-col space-y-1">
-                <span className="text-sm font-medium ">
+                <span className="text-sm font-medium">
                   {sentInvitation.project?.title || "N/A"}
                 </span>
                 <span className="text-xs text-gray-500">
@@ -67,8 +97,25 @@ const InvitationSentCard = () => {
                   {sentInvitation?.createdAt?.split("T")[0]}
                 </span>
               </div>
-              <div className="text-lg">
-                {getStatusIcon(sentInvitation.status)}
+
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 flex items-center justify-center">
+                  {getStatusIcon(sentInvitation.status)}
+                </div>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteInvitation(sentInvitation._id)}
+                      className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete Invitation</TooltipContent>
+                </Tooltip>
               </div>
             </div>
           ))

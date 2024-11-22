@@ -17,12 +17,13 @@ import invitationSlice from "./invitationSlice";
 import projectSlice from "./projectSlice";
 import channelSlice from "./channelSlice";
 import taskMilestoneSlice from "./taskMilestoneSlice";
+import messageSlice from "./messageSlice";
 
 const persistConfig = {
   key: "root",
   version: 1,
   storage,
-  blacklist: ["project", "group", ],
+  blacklist: ["project", "group", "messages"],
   // blacklist: ["invitation"],
 };
 
@@ -34,6 +35,7 @@ const rootReducer = combineReducers({
   project: projectSlice,
   channel: channelSlice,
   taskMilestone: taskMilestoneSlice,
+  messages: messageSlice
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

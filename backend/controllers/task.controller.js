@@ -50,6 +50,8 @@ export const createTask = async (req, res) => {
       createdBy: userId,
     });
 
+    await task.populate("assignees.user", "username profile.profilePhoto");
+    
     // If milestone provided, update its progress
     if (milestoneId) {
       await Milestone.updateMilestoneProgress(milestoneId);

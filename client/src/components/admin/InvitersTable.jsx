@@ -2,8 +2,16 @@ import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
 import { toast } from "sonner";
-import { X, Check, MoreHorizontal, Info } from "lucide-react";
+import { X, Check, MoreHorizontal, Info, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "../ui/sheet";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -14,14 +22,6 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "../ui/alert-dialog";
-import {
-  Sheet,
-  SheetTrigger,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "../ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { setAllSenders } from "@/redux/invitationSlice";
 import {
@@ -34,6 +34,9 @@ const ProjectInvitations = () => {
   const { senders } = useSelector((store) => store.invitation);
   const [selectedInvitation, setSelectedInvitation] = useState(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+   const [invitationToDelete, setInvitationToDelete] = useState(null);
 
   const handleInvitationAction = async (action, invitation) => {
     try {
@@ -92,6 +95,31 @@ const ProjectInvitations = () => {
     }
   };;
 
+  const handleDeleteInvitation = async (invitation) => {
+    try {
+      const response = await axios.delete(
+        `${INVITATION_API_END_POINT}/${invitation._id}`,
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        const updatedInvitations = senders.filter(
+          (inv) => inv._id !== invitation._id
+        );
+        dispatch(setAllSenders(updatedInvitations));
+        toast.success("Invitation deleted successfully");
+      }
+    } catch (error) {
+      console.error("Error deleting invitation:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to delete invitation"
+      );
+    } finally {
+      setShowDeleteDialog(false);
+      setInvitationToDelete(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Mapping through invitations to create a card layout */}
@@ -146,8 +174,8 @@ const ProjectInvitations = () => {
                   <div className="space-y-2">
                     <h3 className="font-semibold">Project Invitation</h3>
                     <p>
-                      <strong>{invitation.inviter.username}</strong> you have been invited
-                      to join the project:{" "}
+                      <strong>{invitation.inviter.username}</strong> you have
+                      been invited to join the project:{" "}
                       <strong>{invitation.project.title}</strong>
                     </p>
                     <p>Role: {invitation.role}</p>
@@ -156,38 +184,53 @@ const ProjectInvitations = () => {
                       Received on:{" "}
                       {new Date(invitation.createdAt).toLocaleString()}
                     </p>
-                    {invitation.status === "pending" && (
-                      <div className="flex space-x-2 mt-4">
-                        <Button
-                          onClick={() =>
-                            handleInvitationAction("Accepted", invitation)
-                          }
-                          className="flex-1"
-                        >
-                          <Check className="mr-2 h-4 w-4" /> Accept
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() =>
-                            handleInvitationAction("Rejected", invitation)
-                          }
-                          className="flex-1"
-                        >
-                          <X className="mr-2 h-4 w-4" /> Decline
-                        </Button>
-                      </div>
-                    )}
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedInvitation(invitation);
-                        setIsSheetOpen(true);
-                      }}
-                      className="w-full mt-2"
-                    >
-                      <Info className="mr-2 h-4 w-4" />
-                      View Project Info
-                    </Button>
+                    <div className="flex space-x-2 mt-4">
+                      {invitation.status === "pending" && (
+                        <>
+                          <Button
+                            onClick={() =>
+                              handleInvitationAction("Accepted", invitation)
+                            }
+                            className="flex-1"
+                          >
+                            <Check className="mr-2 h-4 w-4" /> Accept
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() =>
+                              handleInvitationAction("Rejected", invitation)
+                            }
+                            className="flex-1"
+                          >
+                            <X className="mr-2 h-4 w-4" /> Decline
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedInvitation(invitation);
+                          setIsSheetOpen(true);
+                        }}
+                        className="flex-1"
+                      >
+                        <Info className="mr-2 h-4 w-4" />
+                        View Project Info
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          setInvitationToDelete(invitation);
+                          setShowDeleteDialog(true);
+                        }}
+                        className="flex-1"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </div>
                   </div>
                 </PopoverContent>
               </Popover>
@@ -220,6 +263,50 @@ const ProjectInvitations = () => {
           </div>
         </SheetContent>
       </Sheet>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Invitation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this invitation? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleDeleteInvitation(invitationToDelete)}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Invitation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this invitation? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleDeleteInvitation(invitationToDelete)}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

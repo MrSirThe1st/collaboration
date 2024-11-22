@@ -5,6 +5,17 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { updateProjectMember, setAllAdminProjects } from "@/redux/projectSlice";
 import { setMembers, setSingleGroup } from "@/redux/groupSlice";
+import { Trash2, AlertTriangle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   PROJECT_API_END_POINT,
   COMPANY_API_END_POINT,
@@ -46,7 +57,11 @@ const Group = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [selectedRole, setSelectedRole] = useState("");
 
+  const [projectToDelete, setProjectToDelete] = useState(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   const { id } = useParams();
+  const user = useSelector((state) => state.auth.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { singleGroup } = useSelector((state) => state.group);
@@ -249,6 +264,36 @@ const Group = () => {
     fetchData();
   }, [id, dispatch]);
 
+  const handleProjectDelete = async (project) => {
+    const isOnlyMember =
+      project.members.length === 1 && project.members[0].user === user._id;
+
+    if (!isOnlyMember) {
+      toast.error("Project can only be deleted when you are the only member");
+      return;
+    }
+
+    try {
+      const response = await axios.delete(
+        `${PROJECT_API_END_POINT}/delete/${project._id}`,
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        dispatch(
+          setAllAdminProjects(
+            allAdminProjects.filter((p) => p._id !== project._id)
+          )
+        );
+        toast.success("Project deleted successfully");
+        setShowDeleteDialog(false);
+        setProjectToDelete(null);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete project");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -305,7 +350,7 @@ const Group = () => {
         <div className="grid grid-cols-1 gap-6">
           {allAdminProjects.map((project) => (
             <Card key={project._id} className="overflow-hidden">
-              <CardHeader className="">
+              <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-xl">{project.title}</CardTitle>
@@ -313,14 +358,30 @@ const Group = () => {
                       {project.description.substring(0, 150)}...
                     </CardDescription>
                   </div>
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      navigate(`/admin/projects/${project._id}/page`)
-                    }
-                  >
-                    View Details
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        navigate(`/admin/projects/${project._id}/page`)
+                      }
+                    >
+                      View Details
+                    </Button>
+                    {/* Add Delete Button */}
+                    {project.members.length === 1 &&
+                      project.members[0].user === user._id && (
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => {
+                            setProjectToDelete(project);
+                            setShowDeleteDialog(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                  </div>
                 </div>
               </CardHeader>
 
@@ -461,6 +522,36 @@ const Group = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Delete Project
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{projectToDelete?.title}"? This
+              action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setProjectToDelete(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => handleProjectDelete(projectToDelete)}
+            >
+              Delete Project
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -1,44 +1,97 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+import { Plus, CheckCircle, Clock, AlertCircle, Calendar } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
-import { Plus, CheckCircle, Clock, AlertCircle, Calendar } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CardContent } from "@/components/ui/card";
+import axios from "axios";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { setMilestones } from "@/redux/taskMilestoneSlice";
+import { MILESTONE_API_END_POINT } from "@/utils/constant";
+import NewMilestoneDialog from "./milestoneComponents/NewMilestoneDialog";
+import { Progress } from "@/components/ui/progress";
 
 const MilestonesView = () => {
-  const milestones = [
-    {
-      id: 1,
-      title: "MVP Release",
-      description: "Launch the minimum viable product",
-      dueDate: "2024-12-01",
-      progress: 75,
-      status: "in_progress",
-      tasks: {
-        completed: 15,
-        total: 20,
-      },
-    },
-    {
-      id: 2,
-      title: "Beta Testing",
-      description: "Conduct beta testing with selected users",
-      dueDate: "2024-11-15",
-      progress: 100,
-      status: "completed",
-      tasks: {
-        completed: 8,
-        total: 8,
-      },
-    },
-  ];
+  const dispatch = useDispatch();
+  const { id: projectId } = useParams();
+  const [showNewMilestoneDialog, setShowNewMilestoneDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Get milestones from Redux store
+  const milestones = useSelector((state) => state.taskMilestone.milestones);
+
+  // New milestone form state
+  const [newMilestone, setNewMilestone] = useState({
+    title: "",
+    description: "",
+    dueDate: "",
+  });
+
+  
+
+  // Fetch milestones on component mount
+  useEffect(() => {
+    const fetchMilestones = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(
+          `${MILESTONE_API_END_POINT}/project/${projectId}`,
+          { withCredentials: true }
+        );
+        if (res.data.success) {
+          dispatch(setMilestones(res.data.milestones));
+        }
+      } catch (error) {
+        toast.error("Failed to fetch milestones");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (projectId) {
+      fetchMilestones();
+    }
+  }, [projectId, dispatch]);
+
+  // Handle milestone creation
+  const handleCreateMilestone = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.post(
+        `${MILESTONE_API_END_POINT}/create`,
+        {
+          ...newMilestone,
+          projectId,
+        },
+        { withCredentials: true }
+      );
+
+      if (res.data.success) {
+        dispatch(setMilestones([...milestones, res.data.milestone]));
+        setShowNewMilestoneDialog(false);
+        setNewMilestone({
+          title: "",
+          description: "",
+          dueDate: "",
+        });
+        toast.success("Milestone created successfully");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to create milestone"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -70,7 +123,7 @@ const MilestonesView = () => {
           <h2 className="text-2xl font-bold">Milestones</h2>
           <p className="text-muted-foreground">Track project progress</p>
         </div>
-        <Button>
+        <Button onClick={() => setShowNewMilestoneDialog(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Add Milestone
         </Button>
@@ -109,10 +162,10 @@ const MilestonesView = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between text-sm">
                     <div className="flex items-center gap-2">
-                      <span>Progress</span>
+                      <span>Completed</span>
                       <Badge variant="outline">
-                        {milestone.tasks.completed}/{milestone.tasks.total}{" "}
-                        tasks
+                        {milestone.tasks?.completed || 0}/
+                        {milestone.tasks?.total || 0} tasks
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
@@ -122,13 +175,22 @@ const MilestonesView = () => {
                       </span>
                     </div>
                   </div>
-                  <Progress value={milestone.progress} className="h-2" />
+                  
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       </ScrollArea>
+
+      <NewMilestoneDialog
+        open={showNewMilestoneDialog}
+        onOpenChange={setShowNewMilestoneDialog}
+        newMilestone={newMilestone}
+        setNewMilestone={setNewMilestone}
+        handleCreateMilestone={handleCreateMilestone}
+        loading={loading}
+      />
     </div>
   );
 };

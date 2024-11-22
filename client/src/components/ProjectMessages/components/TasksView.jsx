@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import { Plus } from "lucide-react";
-import { setTasks, updateTasksOrder, addTask } from "@/redux/taskMilestoneSlice";
+import {
+  setTasks,
+  updateTasksOrder,
+  addTask,
+} from "@/redux/taskMilestoneSlice";
 import { TASK_API_END_POINT } from "@/utils/constant";
 import TaskCard from "./taskComponents/TaskCard";
 import NewTaskDialog from "./taskComponents/NewTaskDialog";
@@ -28,6 +32,7 @@ const TasksView = () => {
   // Get data from Redux store
   const tasks = useSelector((state) => state.taskMilestone.tasks);
   const milestones = useSelector((state) => state.taskMilestone.milestones);
+  const canCreateTask = milestones && milestones.length > 0;
   const taskFilters = useSelector((state) => state.taskMilestone.taskFilters);
   const members = useSelector(
     (state) => state.project.singleProject?.members || []
@@ -44,23 +49,23 @@ const TasksView = () => {
   });
 
   // Organized tasks by status
-  const columns = {
-    todo: {
-      id: "todo",
-      title: "To Do",
-      tasks: tasks.filter((task) => task.status === "todo"),
-    },
-    inProgress: {
-      id: "inProgress",
-      title: "In Progress",
-      tasks: tasks.filter((task) => task.status === "in_progress"), // Match backend status
-    },
-    done: {
-      id: "done",
-      title: "Done",
-      tasks: tasks.filter((task) => task.status === "completed"),
-    },
-  };
+const columns = {
+  todo: {
+    id: "todo",
+    title: "To Do",
+    tasks: tasks.filter((task) => task.status === "todo"),
+  },
+  inProgress: {
+    id: "inProgress",
+    title: "In Progress",
+    tasks: tasks.filter((task) => task.status === "in_progress"),
+  },
+  done: {
+    id: "done",
+    title: "Done",
+    tasks: tasks.filter((task) => task.status === "completed"),
+  },
+};
 
   // Fetch tasks on component mount
   useEffect(() => {
@@ -138,50 +143,71 @@ const TasksView = () => {
   };
 
   // Create new task
-const handleCreateTask = async () => {
-  try {
-    setLoading(true);
-    const taskData = {
-      ...newTask,
-      milestoneId: newTask.milestoneId === "none" ? null : newTask.milestoneId,
-    };
+  const handleCreateTask = async () => {
+    try {
+      if (!milestones || milestones.length === 0) {
+        toast.error("Cannot create task without a milestone");
+        return;
+      }
 
-    const res = await axios.post(
-      `${TASK_API_END_POINT}/create`,
-      { ...taskData, projectId },
-      { withCredentials: true }
-    );
+      if (!newTask.assignedRole) {
+        toast.error("Please select a role for the task");
+        return;
+      }
 
-    if (res.data.success) {
-      dispatch(addTask(res.data.task));
-      setShowNewTaskDialog(false);
-      setNewTask({
-        title: "",
-        description: "",
-        priority: "medium",
-        assignedRole: "",
-        milestoneId: "",
-        dueDate: "",
-      });
-      toast.success("Task created successfully");
+      setLoading(true);
+
+      // Find all users with the selected role
+      const assignedUsers = members
+        .filter((member) => member.role === newTask.assignedRole)
+        .map((member) => ({
+          user: member.user,
+          role: member.role,
+        }));
+
+      const taskData = {
+        ...newTask,
+        assignees: assignedUsers,
+        milestoneId:
+          newTask.milestoneId === "none" ? null : newTask.milestoneId,
+      };
+
+      const res = await axios.post(
+        `${TASK_API_END_POINT}/create`,
+        { ...taskData, projectId },
+        { withCredentials: true }
+      );
+
+      if (res.data.success) {
+        dispatch(addTask(res.data.task));
+        setShowNewTaskDialog(false);
+        setNewTask({
+          title: "",
+          description: "",
+          priority: "medium",
+          assignedRole: "",
+          milestoneId: "",
+          dueDate: "",
+        });
+        toast.success("Task created successfully");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to create task");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to create task");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "high":
-        return "bg-red-500";
+        return "bg-red-500 ring-red-500/30";
       case "medium":
-        return "bg-yellow-500";
+        return "bg-yellow-500 ring-yellow-500/30";
       case "low":
-        return "bg-green-500";
+        return "bg-green-500 ring-green-500/30";
       default:
-        return "bg-gray-500";
+        return "bg-gray-500 ring-gray-500/30";
     }
   };
   console.log("Members data:", members);
@@ -224,12 +250,21 @@ const handleCreateTask = async () => {
               )}
             </SelectContent>
           </Select>
-          <Button onClick={() => setShowNewTaskDialog(true)}>
-            <Plus className="w-4 h-4 mr-2" /> Add Task
+          <Button
+            onClick={() => setShowNewTaskDialog(true)}
+            disabled={!canCreateTask}
+            title={!canCreateTask ? "Create a milestone first" : "Add new task"}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Task
           </Button>
         </div>
       </div>
-
+      {!canCreateTask && (
+        <div className="text-center py-4 text-muted-foreground">
+          Please create a milestone before adding tasks.
+        </div>
+      )}
       {/* Task Board */}
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

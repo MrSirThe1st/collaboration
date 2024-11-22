@@ -1,9 +1,12 @@
 import { Project } from "../models/project.model.js";
 import { User } from "../models/user.model.js";
+import { Task } from "../models/task.model.js";
+import { Channel } from "../models/channel.model.js";
+import { Message } from "../models/message.model.js";
+import { Milestone } from "../models/milestone.model.js";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 
-// In project.controller.js
 
 export const postProject = async (req, res) => {
   try {
@@ -245,6 +248,72 @@ export const assignMemberToProject = async (req, res) => {
       message: "Internal Server Error",
       success: false,
       error: error.message,
+    });
+  }
+};
+
+
+export const deleteProject = async (req, res) => {
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { id } = req.params;
+    const userId = req.id; 
+
+
+    const project = await Project.findById(id);
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    if (project.created_by.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Only project owner can delete the project",
+      });
+    }
+
+    if (
+      project.members.length !== 1 ||
+      project.members[0].user.toString() !== userId
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Project can only be deleted when you are the only member",
+      });
+    }
+
+     const channels = await Channel.find({ projectId: id });
+     const channelIds = channels.map((channel) => channel._id);
+     
+    await Promise.all([
+      Task.deleteMany({ projectId: id }),
+      Milestone.deleteMany({ projectId: id }),
+      ...(channelIds.length > 0
+        ? [Message.deleteMany({ channelId: { $in: channelIds } })]
+        : []),
+      Channel.deleteMany({ projectId: id }),
+      Project.findByIdAndDelete(id),
+    ]);
+
+    await User.findByIdAndUpdate(userId, {
+      $pull: { project: id },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Project deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting project:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error deleting project",
     });
   }
 };

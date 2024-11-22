@@ -2,6 +2,7 @@ import { Group } from "../models/group.model.js";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 import { User } from "../models/user.model.js";
+import { Project } from "../models/project.model.js";
 
 export const createGroup = async (req, res) => {
   try {
@@ -181,5 +182,71 @@ export const addMemberToGroup = async (req, res) => {
       message: "Server error.",
       success: false,
     });
+  }
+};
+
+
+export const deleteGroup = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { id } = req.params;
+    const userId = req.id;
+
+    // Find the group
+    const group = await Group.findById(id);
+
+    if (!group) {
+      return res.status(404).json({
+        success: false,
+        message: "Group not found",
+      });
+    }
+
+    // Check if current user is the admin
+    if (group.userId.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Only group admin can delete the group",
+      });
+    }
+
+    // Check for existing projects in the group
+    const projectsCount = await Project.countDocuments({ group: id });
+    if (projectsCount > 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Cannot delete group with existing projects",
+      });
+    }
+
+    // Delete the group and clean up references
+    await Promise.all([
+      Group.findByIdAndDelete(id, { session }),
+      // Remove group reference from all users
+      User.updateMany(
+        { "profile.groups": id },
+        { $pull: { "profile.groups": id } },
+        { session }
+      ),
+    ]);
+
+    await session.commitTransaction();
+
+    return res.status(200).json({
+      success: true,
+      message: "Group deleted successfully",
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    console.error("Error deleting group:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error deleting group",
+      error: error.message,
+    });
+  } finally {
+    session.endSession();
   }
 };
