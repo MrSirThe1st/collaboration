@@ -17,7 +17,7 @@ const SearchFilterSection = ({
   searchQuery,
 }) => {
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 mb-8">
+    <div className="w-full max-w-7xl mx-auto  mb-8">
       <div className="flex flex-col sm:flex-row items-center w-full gap-4 max-w-lg  overflow-hidden p-4 ">
         {/* Category Filter */}
         <div className="w-full sm:w-auto">

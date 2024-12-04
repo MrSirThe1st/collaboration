@@ -5,7 +5,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { updateProjectMember, setAllAdminProjects } from "@/redux/projectSlice";
 import { setMembers, setSingleGroup } from "@/redux/groupSlice";
-import { Trash2, AlertTriangle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +20,14 @@ import {
   COMPANY_API_END_POINT,
   APPLICATION_API_END_POINT,
 } from "@/utils/constant";
-import { Loader2, CheckCircle, XCircle, Plus } from "lucide-react";
+import {
+  Trash2,
+  AlertTriangle,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  Plus,
+} from "lucide-react";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import {
   Card,
@@ -59,6 +65,9 @@ const Group = () => {
 
   const [projectToDelete, setProjectToDelete] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const [requestToDelete, setRequestToDelete] = useState(null);
+  const [showDeleteRequestDialog, setShowDeleteRequestDialog] = useState(false);
 
   const { id } = useParams();
   const user = useSelector((state) => state.auth.user);
@@ -265,13 +274,6 @@ const Group = () => {
   }, [id, dispatch]);
 
   const handleProjectDelete = async (project) => {
-    const isOnlyMember =
-      project.members.length === 1 && project.members[0].user === user._id;
-
-    if (!isOnlyMember) {
-      toast.error("Project can only be deleted when you are the only member");
-      return;
-    }
 
     try {
       const response = await axios.delete(
@@ -291,6 +293,29 @@ const Group = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to delete project");
+    }
+  };
+
+  const handleDeleteRequest = async (request, projectId) => {
+    try {
+      const response = await axios.delete(
+        `${APPLICATION_API_END_POINT}/request/${request._id}`,
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        // Update local state to remove the deleted request
+        setProjectRequests((prev) => ({
+          ...prev,
+          [projectId]: prev[projectId].filter((req) => req._id !== request._id),
+        }));
+        toast.success("Request deleted successfully");
+        setShowDeleteRequestDialog(false);
+        setRequestToDelete(null);
+      }
+    } catch (error) {
+      console.error("Error deleting request:", error);
+      toast.error(error.response?.data?.message || "Failed to delete request");
     }
   };
 
@@ -367,20 +392,17 @@ const Group = () => {
                     >
                       View Details
                     </Button>
-                    {/* Add Delete Button */}
-                    {project.members.length === 1 &&
-                      project.members[0].user === user._id && (
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => {
-                            setProjectToDelete(project);
-                            setShowDeleteDialog(true);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
+
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => {
+                        setProjectToDelete(project);
+                        setShowDeleteDialog(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -436,11 +458,11 @@ const Group = () => {
                             </div>
 
                             <div className="flex items-center gap-2">
-                              {request.status === "thinking" && (
+                              {request.status === "thinking" ? (
                                 <>
                                   <Button
                                     variant="outline"
-                                    className="bg-green-50 text-green-600 "
+                                    className="bg-green-50 text-green-600"
                                     onClick={() =>
                                       handleRequestStatus(
                                         request._id,
@@ -455,7 +477,7 @@ const Group = () => {
                                   </Button>
                                   <Button
                                     variant="outline"
-                                    className="bg-red-50 text-red-600 "
+                                    className="bg-red-50 text-red-600"
                                     onClick={() =>
                                       handleRequestStatus(
                                         request._id,
@@ -469,6 +491,22 @@ const Group = () => {
                                     Reject
                                   </Button>
                                 </>
+                              ) : (
+                                // Add delete button for non-pending requests
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-red-600 hover:text-red-700"
+                                  onClick={() => {
+                                    setRequestToDelete({
+                                      request,
+                                      projectId: project._id,
+                                    });
+                                    setShowDeleteRequestDialog(true);
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               )}
                             </div>
                           </div>
@@ -548,6 +586,46 @@ const Group = () => {
               onClick={() => handleProjectDelete(projectToDelete)}
             >
               Delete Project
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showDeleteRequestDialog}
+        onOpenChange={setShowDeleteRequestDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Delete Request
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this request? This action cannot
+              be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowDeleteRequestDialog(false);
+                setRequestToDelete(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() =>
+                requestToDelete &&
+                handleDeleteRequest(
+                  requestToDelete.request,
+                  requestToDelete.projectId
+                )
+              }
+            >
+              Delete Request
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -216,7 +216,6 @@ const columns = {
       {/* Header Section */}
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Tasks</h2>
           <p className="text-muted-foreground">
             {loading ? "Loading tasks..." : `${tasks.length} total tasks`}
           </p>

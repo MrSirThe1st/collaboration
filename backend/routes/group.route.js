@@ -6,6 +6,7 @@ import {
   updateGroup,
   createGroup,
   addMemberToGroup,
+  deleteGroup
 } from "../controllers/group.controller.js";
 import { singleUpload } from "../middlewares/mutler.js";
 
@@ -16,5 +17,6 @@ router.route("/get").get(isAuthenticated, getGroup);
 router.route("/get/:id").get(isAuthenticated, getGroupById);
 router.route("/update/:id").put(isAuthenticated, singleUpload, updateGroup);
 router.route("/addMember/:groupId").post(isAuthenticated, addMemberToGroup);
+router.route("/delete/:id").delete(isAuthenticated, deleteGroup);
 
 export default router;

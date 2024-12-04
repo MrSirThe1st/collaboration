@@ -1,14 +1,51 @@
 import React, { useEffect, useState } from "react";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Edit2, MoreHorizontal } from "lucide-react";
-import { useSelector } from "react-redux";
+import { Edit2, MoreHorizontal, AlertTriangle } from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import useGetAllGroups from "@/hooks/useGetAllGroups";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import axios from "axios";
+import { COMPANY_API_END_POINT } from "@/utils/constant";
+import { toast } from "sonner";
+import { setGroups } from "@/redux/groupSlice";
 
 const GroupsCardLayout = () => {
   const { groups, searchGroupByText } = useSelector((store) => store.group);
   const [filterGroup, setFilterGroup] = useState(groups);
+  const [groupToDelete, setGroupToDelete] = useState(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+
+  const handleGroupDelete = async (group) => {
+    try {
+      const response = await axios.delete(
+        `${COMPANY_API_END_POINT}/delete/${group._id}`,
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        dispatch(setGroups(groups.filter((g) => g._id !== group._id)));
+        toast.success("Group deleted successfully");
+        setShowDeleteDialog(false);
+        setGroupToDelete(null);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete group");
+    }
+  };
   useGetAllGroups();
 
   const navigate = useNavigate();
@@ -26,7 +63,7 @@ const GroupsCardLayout = () => {
   }, [groups, searchGroupByText]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
       {filterGroup?.map((group) => (
         <div
           key={group._id}
@@ -34,10 +71,20 @@ const GroupsCardLayout = () => {
           onClick={() => navigate(`/admin/group/${group._id}`)}
         >
           {/* Left Section: cover and Name */}
-          <div className="bg-muted/40 flex flex-col items-center justify-center p-4 w-1/3">
-            <Avatar className="mb-4">
-              <AvatarImage src={group.cover} alt={group.name} />
-            </Avatar>
+          <div className="w-1/3 relative">
+            {group.cover ? (
+              <img
+                src={group.cover}
+                alt={group.name}
+                className="w-full h-full object-cover absolute inset-0"
+              />
+            ) : (
+              <div className="w-full h-full bg-muted/40 flex items-center justify-center">
+                <span className="text-muted-foreground">
+                  {group.name[0]?.toUpperCase()}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Right Section: Additional Info and Actions */}
@@ -57,16 +104,33 @@ const GroupsCardLayout = () => {
                 <PopoverTrigger onClick={(e) => e.stopPropagation()}>
                   <MoreHorizontal className="cursor-pointer" />
                 </PopoverTrigger>
-                <PopoverContent className="w-32">
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/profile/${group._id}`);
-                    }}
-                    className="flex items-center gap-2 w-full cursor-pointer"
-                  >
-                    <Edit2 className="w-4" />
-                    <span>Edit</span>
+                <PopoverContent className="w-40">
+                  <div className="flex flex-col space-y-2">
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/profile/${group._id}`);
+                      }}
+                      className="flex items-center gap-2 w-full p-2 cursor-pointer hover:bg-muted rounded-md"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      <span>Edit</span>
+                    </div>
+
+                    {/* Add delete option - only show if user is admin */}
+                    {group.userId === user._id && (
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setGroupToDelete(group);
+                          setShowDeleteDialog(true);
+                        }}
+                        className="flex items-center gap-2 w-full p-2 cursor-pointer hover:bg-destructive/10 text-destructive rounded-md"
+                      >
+                        <AlertTriangle className="w-4 h-4" />
+                        <span>Delete</span>
+                      </div>
+                    )}
                   </div>
                 </PopoverContent>
               </Popover>
@@ -74,6 +138,37 @@ const GroupsCardLayout = () => {
           </div>
         </div>
       ))}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Delete Group
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{groupToDelete?.name}"? This
+              action cannot be undone. Make sure there are no projects in this
+              group.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setGroupToDelete(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => handleGroupDelete(groupToDelete)}
+            >
+              Delete Group
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

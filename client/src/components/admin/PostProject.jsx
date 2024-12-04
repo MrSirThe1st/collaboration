@@ -17,7 +17,7 @@ import axios from "axios";
 import { PROJECT_API_END_POINT } from "@/utils/constant";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react"; 
 
 const CATEGORIES = [
   { value: "Web Development", label: "Web Development" },
@@ -107,11 +107,9 @@ const PostProject = () => {
         formData.append("file", input.file);
       }
 
-      // Log the data being sent
       console.log("Sending data:");
       for (let [key, value] of formData.entries()) {
         console.log(`${key}:`, value);
-        // If it's a JSON string, also log the parsed version
         try {
           const parsed = JSON.parse(value);
           console.log(`${key} (parsed):`, parsed);

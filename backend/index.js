@@ -8,10 +8,13 @@ import projectRoute from "./routes/project.route.js";
 import groupRoute from "./routes/group.route.js";
 import requestRoute from "./routes/request.route.js";
 import invitationRoute from "./routes/invitation.route.js";
-import messageRoute from "./routes/message.route.js";
 import channelRoute from "./routes/channel.route.js";
 import taskRoute from "./routes/task.route.js"
 import milestoneRoute from "./routes/milestone.route.js";
+import fileRoute from "./routes/file.route.js"
+import documentationRoute from "./routes/documentation.route.js"
+import projectMessageRoutes from "./routes/projectMessage.route.js";
+import directMessageRoutes from "./routes/directMessage.route.js";
 import http from "http";
 import { Server } from "socket.io";
 
@@ -66,10 +69,13 @@ app.use("/api/v1/group", groupRoute);
 app.use("/api/v1/project", projectRoute);
 app.use("/api/v1/request", requestRoute);
 app.use("/api/v1/invitation", invitationRoute);
-app.use("/api/v1/message", messageRoute);
 app.use("/api/v1/channel", channelRoute);
 app.use("/api/v1/task", taskRoute);
 app.use("/api/v1/milestone", milestoneRoute);
+app.use("/api/v1/files", fileRoute);
+app.use("/api/v1/documentation", documentationRoute);
+app.use("/api/v1/project-messages", projectMessageRoutes);
+app.use("/api/v1/direct-messages", directMessageRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 3000;

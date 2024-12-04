@@ -20,6 +20,7 @@ import Workspace from "./components/Workspace";
 import Layout2 from "./components/Layout2";
 import AllInvitations from "./components/AllInvitations";
 import Team from "./components/Team";
+import Inbox from "./components/Inbox";
 
 
 const appRouter = createBrowserRouter([
@@ -45,7 +46,11 @@ const appRouter = createBrowserRouter([
   },
   {
     path: "/admin/group/:id",
-    element: <Group />,
+    element: (
+      <Layout>
+        <Group />
+      </Layout>
+    ),
   },
   // {
   //   path: "/admin/group",
@@ -128,12 +133,24 @@ const appRouter = createBrowserRouter([
     ),
   },
   {
+    path: "/inbox",
+    element: (
+      <Layout>
+        <Inbox />
+      </Layout>
+    ),
+  },
+  {
     path: "/profession/:profession",
     element: <Category />,
   },
   {
     path: "/user/:id",
-    element: <UserDetail />,
+    element: (
+      <Layout>
+        <UserDetail />
+      </Layout>
+    ),
   },
   // {
   //   path: "/projects/:id/requesters",

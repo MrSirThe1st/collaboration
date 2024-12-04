@@ -37,8 +37,8 @@ const Home = () => {
   }, [allProjects, selectedCategory, searchQuery]);
 
   return (
-    <div className="min-h-screen ">
-      <div className="py-8">
+    <div className="min-h-screen">
+      <div>
         <SearchFilterSection
           selectedCategory={selectedCategory}
           searchQuery={searchQuery}

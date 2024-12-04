@@ -29,10 +29,12 @@ import {
   Bookmark,
   Clock,
   Globe,
+  
 } from "lucide-react";
 import useGetAllAdminProjects from "@/hooks/useGetAllAdminProjects";
 import { INVITATION_API_END_POINT } from "@/utils/constant";
 import { toast } from "sonner";
+import MessageButton from "./ProjectMessages/components/MessageButton";
 
 const UserDetail = () => {
   const { state } = useLocation();
@@ -112,6 +114,18 @@ const UserDetail = () => {
     navigate("/profile");
   };
 
+  // const handleViewInbox = () => {
+  //   navigate("/inbox", {
+  //     state: {
+  //       userId: user._id,
+  //       username: user.username,
+  //       profilePhoto: user.profile.profilePhoto,
+  //       startChat: true,
+  //       existingChat: false,
+  //     },
+  //   });
+  // };
+
   return (
     <div className=" min-h-screen">
       <div className="container mx-auto py-10 px-4">
@@ -124,7 +138,7 @@ const UserDetail = () => {
                   <img
                     src={user.profile.profilePhoto || "/default-avatar.png"}
                     alt={user.username}
-                    className="w-32 h-32 rounded-2xl object-cover ring-4 ring-white shadow-lg"
+                    className="w-32 h-32 rounded-2xl object-cover ring-0  shadow-lg"
                   />
                   <span
                     className={`absolute bottom-2 right-2 w-4 h-4 rounded-full border-2 border-white ${
@@ -140,7 +154,7 @@ const UserDetail = () => {
                 <div className="flex-1 pt-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h1 className="text-2xl font-bold">{user.username}</h1>
+                      <h1 className="text-xl font-bold">{user.username}</h1>
                       <div className="flex items-center gap-2 mt-1">
                         <Briefcase className="w-4 h-4" />
                         <span>{user.profession}</span>
@@ -149,6 +163,18 @@ const UserDetail = () => {
                         <Clock className="w-4 h-4" />
                         <span>Status: {user.status}</span>
                       </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      {currentUser && user._id === currentUser._id ? (
+                        <Button onClick={handleViewInbox}>Edit Profile</Button>
+                      ) : (
+                        <MessageButton
+                          userId={user._id}
+                          username={user.username}
+                          profile={user.profile} 
+                        />
+                      )}
                     </div>
 
                     <div>
@@ -162,7 +188,9 @@ const UserDetail = () => {
                           onOpenChange={setIsDialogOpen}
                         >
                           <DialogTrigger asChild>
-                            <Button>Invite to Project</Button>
+                            <Button variant="secondary" size="sm">
+                              Invite to Project
+                            </Button>
                           </DialogTrigger>
                           <DialogContent className="sm:max-w-[425px]">
                             <DialogHeader>
@@ -270,7 +298,7 @@ const UserDetail = () => {
               {user.profile.bio && (
                 <div className="mt-6">
                   <h2 className="text-lg font-semibold mb-2">About</h2>
-                  <p className="">{user.profile.bio}</p>
+                  <p className="text-sm">{user.profile.bio}</p>
                 </div>
               )}
             </div>

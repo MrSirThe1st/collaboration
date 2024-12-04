@@ -1,11 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-
-  Plus,
-  ChevronDown,
-} from "lucide-react";
+import { Plus, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,10 +12,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import MessageButton from "./components/MessageButton";
+import { resetInbox } from "@/redux/inboxSlice";
 
-
-
-const MembersList = ({ members }) => {
+const MembersList = ({ members, onClose }) => {
   const groupedMembers = members?.reduce((acc, member) => {
     const role = member.role;
     if (!acc[role]) {
@@ -26,6 +24,54 @@ const MembersList = ({ members }) => {
     acc[role].push(member);
     return acc;
   }, {});
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const handleMessageClick = (member) => {
+    dispatch(resetInbox());
+    if (onClose) onClose(); // Close the members list sidebar first
+    setTimeout(() => {
+      // Add a small delay before navigation
+      navigate("/inbox", {
+        state: {
+          userId: member._id,
+          username: member.username,
+          profilePhoto: member.profile?.profilePhoto,
+          startChat: true,
+          existingChat: false,
+        },
+        replace: true, 
+      });
+    }, 100);
+  };
+
+  const handleViewProfile = (member) => {
+    console.log("Member data:", member);
+    if (onClose) onClose();
+
+    // Format the member data to match what UserDetail expects
+    const formattedUser = {
+      _id: member.id || member._id,
+      username: member.username,
+      email: member.email,
+      profession: member.profession,
+      status: member.status,
+      profile: {
+        profilePhoto: member.profile?.profilePhoto,
+        bio: member.profile?.bio,
+        skills: member.profile?.skills || [],
+        socialLinks: member.profile?.socialLinks || {},
+        ...member.profile,
+      },
+    };
+
+    setTimeout(() => {
+      navigate(`/user/${formattedUser._id}`, {
+        state: { user: formattedUser },
+      });
+    }, 100);
+  };
 
   return (
     <div className="p-4">
@@ -69,8 +115,16 @@ const MembersList = ({ members }) => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View Profile</DropdownMenuItem>
-                      <DropdownMenuItem>Send Message</DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleViewProfile(member)}
+                      >
+                        View Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleMessageClick(member)}
+                      >
+                        Send Message
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem>Change Role</DropdownMenuItem>
                       <DropdownMenuItem className="text-red-600">
@@ -93,5 +147,4 @@ const MembersList = ({ members }) => {
   );
 };
 
-
-export default MembersList
+export default MembersList;

@@ -19,11 +19,7 @@ const MemberProjectsGrid = ({ projects, user }) => {
             className="bg-muted/40 rounded-lg shadow-md overflow-hidden relative cursor-pointer"
             onClick={() => navigate(`/admin/projects/${project._id}/page`)}
           >
-            {/* Subtle background line */}
-
             <div className="p-4 relative z-10">
-              {/* Circular pink placeholder image */}
-
               {project.logo ? (
                 <img
                   src={project.logo}
@@ -43,9 +39,6 @@ const MemberProjectsGrid = ({ projects, user }) => {
                   <p className="text-sm text-gray-600">Role: {member?.role}</p>
                 </div>
                 <Popover>
-                  <PopoverTrigger>
-                    <MoreHorizontal className="cursor-pointer" />
-                  </PopoverTrigger>
                   <PopoverContent className="w-32">
                     <div
                       onClick={() =>

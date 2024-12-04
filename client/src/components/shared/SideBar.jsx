@@ -15,6 +15,8 @@ import {
   ChevronsLeft,
   Earth,
   Hammer,
+  AtSign,
+  MessageCircle,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { Badge } from "../ui/badge";
@@ -191,7 +193,7 @@ const Sidebar = () => {
                   isActive("/allInvitations") ? "bg-white text-foreground" : ""
                 }`}
               >
-                <Mail className={isCollapsed ? "h-7 w-7" : "h-5 w-5"} />
+                <AtSign className={isCollapsed ? "h-7 w-7" : "h-5 w-5"} />
                 {!isCollapsed && "Invitations"}
                 {!isCollapsed && <Badge className="ml-auto">6</Badge>}
               </Link>
@@ -206,6 +208,19 @@ const Sidebar = () => {
                 <Users className={isCollapsed ? "h-7 w-7" : "h-5 w-5"} />
                 {!isCollapsed && "team"}
               </Link>
+              <Link
+                to="/inbox"
+                className={`flex items-center ${
+                  isCollapsed ? "justify-center" : "gap-4"
+                } rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground ${
+                  isActive("/inbox") ? "bg-white text-foreground" : ""
+                }`}
+              >
+                <MessageCircle
+                  className={isCollapsed ? "h-7 w-7" : "h-5 w-5"}
+                />
+                {!isCollapsed && "Messages"}
+              </Link>
             </ul>
           </nav>
         </div>
@@ -213,7 +228,7 @@ const Sidebar = () => {
 
       {/* Mobile Sidebar */}
       <div className="flex flex-col md:hidden">
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 ">
+        <header className="flex h-14 items-center gap-4 px-4 lg:h-[60px] lg:px-6 ">
           <Sheet>
             <SheetTrigger asChild>
               <Button
@@ -262,7 +277,7 @@ const Sidebar = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary cursor-pointer">
-                      <Mail className="h-4 w-4" />
+                      <AtSign className="h-4 w-4" />
                       Invitations
                     </div>
                   </DropdownMenuTrigger>
@@ -278,6 +293,14 @@ const Sidebar = () => {
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
+
+                <Link
+                  href="/inbox"
+                  className="flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                  Workspace
+                </Link>
               </nav>
             </SheetContent>
           </Sheet>

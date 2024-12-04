@@ -18,6 +18,8 @@ import projectSlice from "./projectSlice";
 import channelSlice from "./channelSlice";
 import taskMilestoneSlice from "./taskMilestoneSlice";
 import messageSlice from "./messageSlice";
+import projectMessagesSlice from "./projectMessagesSlice"
+import inboxSlice from "./inboxSlice"
 
 const persistConfig = {
   key: "root",
@@ -35,7 +37,8 @@ const rootReducer = combineReducers({
   project: projectSlice,
   channel: channelSlice,
   taskMilestone: taskMilestoneSlice,
-  messages: messageSlice
+  projectMessages: projectMessagesSlice,
+  inbox: inboxSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

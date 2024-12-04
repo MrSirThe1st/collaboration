@@ -120,7 +120,6 @@ const MilestonesView = () => {
     <div className="h-full flex flex-col">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Milestones</h2>
           <p className="text-muted-foreground">Track project progress</p>
         </div>
         <Button onClick={() => setShowNewMilestoneDialog(true)}>

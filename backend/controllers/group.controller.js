@@ -3,6 +3,7 @@ import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 import { User } from "../models/user.model.js";
 import { Project } from "../models/project.model.js";
+import mongoose from "mongoose";
 
 export const createGroup = async (req, res) => {
   try {
@@ -100,14 +101,23 @@ export const getGroupById = async (req, res) => {
 
 export const updateGroup = async (req, res) => {
   try {
-    const { name, description, location } = req.body;
+    const { name, status } = req.body;
+    const updateData = { name, status };
 
-    const file = req.file;
-    const fileUri = getDataUri(file);
-    const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
-    const cover = cloudResponse.secure_url;
-
-    const updateData = { name, description, location, cover };
+    if (req.file) {
+      try {
+        const fileUri = getDataUri(req.file);
+        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+        updateData.cover = cloudResponse.secure_url;
+      } catch (uploadError) {
+        console.error("File upload error:", uploadError);
+        return res.status(400).json({
+          message: "Error uploading file",
+          success: false,
+          error: uploadError.message,
+        });
+      }
+    }
 
     const group = await Group.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
@@ -119,12 +129,19 @@ export const updateGroup = async (req, res) => {
         success: false,
       });
     }
+
     return res.status(200).json({
-      message: "Group information updated.",
+      message: "Group information updated successfully.",
       success: true,
+      group, // Return updated group data
     });
   } catch (error) {
-    console.log(error);
+    console.error("Update error:", error);
+    return res.status(500).json({
+      message: "Error updating group",
+      success: false,
+      error: error.message,
+    });
   }
 };
 

@@ -132,7 +132,7 @@ const LatestProjectCards = ({ project }) => {
             )}
           </div>
         </div>
-        <p className="text-sm text-gray-600 mb-3 line-clamp-3">
+        <p className="text-xs text-gray-600 mb-3 line-clamp-3">
           {project?.description}
         </p>
         <div className="flex flex-wrap gap-1">
@@ -154,7 +154,7 @@ const LatestProjectCards = ({ project }) => {
                 setShowAllRequirements(true);
               }}
             >
-              +{formattedRequirements.length - 2} more
+              +{formattedRequirements.length - 2}
             </Badge>
           )}
           {showAllRequirements && (

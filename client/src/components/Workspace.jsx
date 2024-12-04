@@ -4,10 +4,10 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import GroupsTable from "./admin/groupsTable";
 import MemberProjectsTable from "./MemberProjectsTable";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import useGetAllGroups from "@/hooks/useGetAllGroups";
 import useGetAllProjects from "@/hooks/useGetAllProjects";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"; 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Plus } from "lucide-react";
 
 const Workspace = () => {
@@ -36,7 +36,7 @@ const Workspace = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto my-10">
+    <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between my-3">
         <Button onClick={() => navigate("/admin/create")}>
           <Plus className="h-5 w-5" />

@@ -85,7 +85,7 @@ export const getRequesters = async (req, res) => {
       options: { sort: { createdAt: -1 } },
       populate: {
         path: "requester",
-        select: "username email profession profile", 
+        select: "username email profession profile",
       },
     });
 
@@ -152,6 +152,57 @@ export const updateStatus = async (req, res) => {
     return res.status(500).json({
       message: "Internal server error",
       success: false,
+    });
+  }
+};
+
+export const deleteRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.id;
+
+    const request = await Request.findById(id);
+    if (!request) {
+      return res.status(404).json({
+        message: "Request not found",
+        success: false,
+      });
+    }
+
+    const project = await Project.findById(request.project);
+    if (!project) {
+      return res.status(404).json({
+        message: "Associated project not found",
+        success: false,
+      });
+    }
+
+    if (project.created_by.toString() !== userId) {
+      return res.status(403).json({
+        message: "Not authorized to delete this request",
+        success: false,
+      });
+    }
+
+    // Remove request from project's requests array
+    project.requests = project.requests.filter(
+      (reqId) => reqId.toString() !== id
+    );
+    await project.save();
+
+    // Delete the request
+    await Request.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      message: "Request deleted successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.error("Error in deleteRequest:", error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false,
+      error: error.message,
     });
   }
 };

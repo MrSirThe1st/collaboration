@@ -13,7 +13,7 @@ const AllInvitations = () => {
       <Tabs defaultValue="invitationsIn">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="invitationsIn">Invitations received</TabsTrigger>
-          <TabsTrigger value="invitationsOut">Invitations sent</TabsTrigger>
+          <TabsTrigger value="invitationsOut">Requests sent</TabsTrigger>
         </TabsList>
 
         <TabsContent value="invitationsIn">

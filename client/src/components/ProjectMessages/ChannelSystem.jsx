@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { CHANNEL_API_END_POINT } from "@/utils/constant";
@@ -19,15 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Hash,
-  Bell,
-  Users,
-  Plus,
-  Settings,
-  Trash2,
-  MoreVertical,
-} from "lucide-react";
+import { Hash, Bell, Users, Plus, Trash2, MoreVertical } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +29,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -47,40 +41,40 @@ import {
 
 const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
   const [showNewChannelDialog, setShowNewChannelDialog] = useState(false);
-  const [newChannel, setNewChannel] = useState({
-    name: "",
-    selectedRole: "",
-  });
+  const [showMembersSheet, setShowMembersSheet] = useState(false);
+  const [selectedChannelMembers, setSelectedChannelMembers] = useState([]);
+  const [newChannel, setNewChannel] = useState({ name: "", selectedRole: "" });
 
-  const staticDefaultChannels = [
-    { _id: "general", name: "general", type: "public" },
-    { _id: "announcements", name: "announcements", type: "announcement" },
-  ];
-
-  //redux
   const dispatch = useDispatch();
   const { channels } = useSelector((state) => state.channel);
   const selectedChannel = useSelector((state) => state.channel.selectedChannel);
 
-
   const getProjectRoles = () => {
     const roles = membersInfo.map((member) => member.role);
-    return [...new Set(roles)]; // Remove duplicates
+    return [...new Set(roles)];
   };
 
-  const getMembersByRole = (role) => {
-    return membersInfo.filter((member) => member.role === role);
-  };
+  const getMembersByRole = (role) =>
+    membersInfo.filter((member) => member.role === role);
 
-  const getChannelIcon = (channelName) => {
-    switch (channelName.toLowerCase()) {
-      case "general":
+  const getChannelIcon = (type) => {
+    switch (type) {
+      case "default":
         return <Hash className="h-4 w-4" />;
-      case "announcements":
+      case "announcement":
         return <Bell className="h-4 w-4" />;
       default:
         return <Users className="h-4 w-4" />;
     }
+  };
+
+  const handleViewChannelMembers = (channel) => {
+    if (channel.type === "default" || channel.type === "announcement") {
+      setSelectedChannelMembers(membersInfo);
+    } else {
+      setSelectedChannelMembers(getMembersByRole(channel.role));
+    }
+    setShowMembersSheet(true);
   };
 
   const handleCreateChannel = async () => {
@@ -97,7 +91,6 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
 
       const roleMembers = getMembersByRole(newChannel.selectedRole);
       const memberIds = roleMembers.map((member) => member._id);
-
       const formattedName = newChannel.name.toLowerCase().replace(/\s+/g, "-");
 
       const response = await axios.post(
@@ -107,8 +100,8 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
           role: newChannel.selectedRole,
           projectId,
           members: memberIds,
+          type: "role-based",
         },
-
         { withCredentials: true }
       );
 
@@ -128,8 +121,7 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
     try {
       const response = await axios.delete(
         `${CHANNEL_API_END_POINT}/delete/${channelId}`,
-        { withCredentials: true },
-        { data: projectId }
+        { withCredentials: true }
       );
 
       if (response.data.success) {
@@ -145,7 +137,71 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
     }
   };
 
+  const defaultChannels = channels.filter(
+    (channel) => channel.type === "default" || channel.type === "announcement"
+  );
 
+  const roleChannels = channels.filter(
+    (channel) => channel.type === "role-based"
+  );
+
+  const ChannelButton = ({ channel, canDelete = false }) => (
+    <div key={channel._id} className="group relative">
+      <button
+        className={cn(
+          "w-full flex items-center gap-2 p-2 rounded-md",
+          "hover:bg-accent text-sm",
+          selectedChannel?._id === channel._id && "bg-accent"
+        )}
+        onClick={() => dispatch(setSelectedChannel(channel))}
+      >
+        {getChannelIcon(channel.type)}
+        <span className="flex-1 text-left">{channel.name}</span>
+        <Badge variant="outline" className="text-xs">
+          {channel.type === "role-based"
+            ? `${channel.role} (${getMembersByRole(channel.role).length})`
+            : `${membersInfo.length} members`}
+        </Badge>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="opacity-0 group-hover:opacity-100 h-6 w-6"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleViewChannelMembers(channel);
+          }}
+        >
+          <Users className="h-4 w-4" />
+        </Button>
+        {canDelete && isProjectOwner && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="opacity-0 group-hover:opacity-100 h-6 w-6"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteChannel(channel._id);
+                }}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Channel
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </button>
+    </div>
+  );
 
   return (
     <div className="flex-1 overflow-hidden">
@@ -153,29 +209,16 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
         <div className="space-y-2 p-2">
           {/* Default Channels */}
           <div className="space-y-[2px]">
-            {staticDefaultChannels.map((channel) => (
-              <button
-                key={channel._id}
-                className={cn(
-                  "w-full flex items-center gap-2 p-2 rounded-md",
-                  "hover:bg-accent text-sm",
-                  selectedChannel?._id === channel._id && "bg-accent"
-                )}
-                onClick={() => dispatch(setSelectedChannel(channel))}
-              >
-                {getChannelIcon(channel.name)}
-                <span className="flex-1 text-left capitalize">
-                  {channel.name}
-                </span>
-              </button>
+            {defaultChannels.map((channel) => (
+              <ChannelButton key={channel._id} channel={channel} />
             ))}
           </div>
 
-          {/* Always show Role Channels section with create button */}
+          {/* Role Channels section */}
           <Separator />
           <div className="flex items-center justify-between px-2">
             <h3 className="text-sm font-medium text-muted-foreground">
-              Create a channel
+              Role Channels
             </h3>
             {isProjectOwner && (
               <Button
@@ -188,59 +231,10 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
             )}
           </div>
 
-          {/* Role Channels */}
           <div className="space-y-[2px]">
-            {channels
-              .filter(
-                (channel) =>
-                  !["general", "announcements"].includes(
-                    channel.name.toLowerCase()
-                  )
-              )
-              .map((channel) => (
-                <div key={channel._id} className="group relative">
-                  <button
-                    className={cn(
-                      "w-full flex items-center gap-2 p-2 rounded-md",
-                      "hover:bg-accent text-sm",
-                      selectedChannel?._id === channel._id && "bg-accent"
-                    )}
-                    onClick={() => dispatch(setSelectedChannel(channel))}
-                  >
-                    {getChannelIcon(channel.name)}
-                    <span className="flex-1 text-left">{channel.name}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {channel.role}
-                    </Badge>
-                    {isProjectOwner && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="opacity-0 group-hover:opacity-100 h-6 w-6 absolute right-1"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteChannel(channel._id);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Channel
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </button>
-                </div>
-              ))}
+            {roleChannels.map((channel) => (
+              <ChannelButton key={channel._id} channel={channel} canDelete />
+            ))}
           </div>
         </div>
       </ScrollArea>
@@ -261,10 +255,7 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
                 id="name"
                 value={newChannel.name}
                 onChange={(e) =>
-                  setNewChannel({
-                    ...newChannel,
-                    name: e.target.value,
-                  })
+                  setNewChannel({ ...newChannel, name: e.target.value })
                 }
                 placeholder="Enter channel name"
               />
@@ -274,10 +265,7 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
               <Select
                 value={newChannel.selectedRole}
                 onValueChange={(value) =>
-                  setNewChannel({
-                    ...newChannel,
-                    selectedRole: value,
-                  })
+                  setNewChannel({ ...newChannel, selectedRole: value })
                 }
               >
                 <SelectTrigger>
@@ -297,23 +285,6 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
                 </SelectContent>
               </Select>
             </div>
-
-            {newChannel.selectedRole && (
-              <div className="space-y-2">
-                <Label>Members with this role</Label>
-                <div className="bg-muted p-2 rounded-md max-h-32 overflow-y-auto">
-                  {getMembersByRole(newChannel.selectedRole).map((member) => (
-                    <div
-                      key={member._id}
-                      className="flex items-center gap-2 py-1"
-                    >
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{member.username}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
           <DialogFooter>
             <Button
@@ -326,6 +297,36 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Members Sheet */}
+      <Sheet open={showMembersSheet} onOpenChange={setShowMembersSheet}>
+        <SheetContent side="right">
+          <div className="p-4">
+            <h2 className="font-semibold mb-4">Channel Members</h2>
+            <div className="space-y-2">
+              {selectedChannelMembers.map((member) => (
+                <div
+                  key={member._id}
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={member.profile?.profilePhoto} />
+                    <AvatarFallback>
+                      {member.username?.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{member.username}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {member.role}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

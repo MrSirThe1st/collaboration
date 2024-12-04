@@ -72,7 +72,6 @@ const ProjectInvitations = () => {
 
   const assignMemberToProject = async (projectId, memberId, role) => {
     try {
-      // For debugging
       console.log("Sending request with:", { projectId, memberId, role });
 
       const response = await axios.post(
@@ -245,7 +244,7 @@ const ProjectInvitations = () => {
         )}
       </div>
 
-      {/* Shadcn UI Sheet for project info */}
+
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent>
           <SheetHeader>
@@ -259,7 +258,6 @@ const ProjectInvitations = () => {
               <strong>Requirements:</strong>{" "}
               {selectedInvitation?.project.requirements.join(", ")}
             </p>
-            {/* Add other details as needed */}
           </div>
         </SheetContent>
       </Sheet>

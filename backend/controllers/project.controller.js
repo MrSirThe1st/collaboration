@@ -2,11 +2,11 @@ import { Project } from "../models/project.model.js";
 import { User } from "../models/user.model.js";
 import { Task } from "../models/task.model.js";
 import { Channel } from "../models/channel.model.js";
-import { Message } from "../models/message.model.js";
+import { ProjectMessage } from "../models/projectMessage.model.js";
 import { Milestone } from "../models/milestone.model.js";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
-
+import mongoose from "mongoose";
 
 export const postProject = async (req, res) => {
   try {
@@ -61,6 +61,26 @@ export const postProject = async (req, res) => {
       ],
     });
 
+    const defaultChannels = [
+      {
+        name: "general",
+        type: "default",
+        projectId: project._id,
+        createdBy: req.id,
+        members: [req.id],
+        isDefault: true,
+      },
+      {
+        name: "announcements",
+        type: "announcement",
+        projectId: project._id,
+        createdBy: req.id,
+        members: [req.id],
+        isDefault: true,
+      },
+    ];
+
+    await Channel.insertMany(defaultChannels);
     // Add project to user's projects
     await User.findByIdAndUpdate(req.id, {
       $push: { project: project._id },
@@ -100,7 +120,7 @@ export const getAllProjects = async (req, res) => {
 
     if (!projects || projects.length === 0) {
       return res.status(200).json({
-        projects: [], 
+        projects: [],
         success: true,
       });
     }
@@ -237,6 +257,8 @@ export const assignMemberToProject = async (req, res) => {
 
     await project.save();
 
+    await Channel.syncDefaultChannels(projectId, memberId);
+
     return res.status(200).json({
       message: "Member assigned to project successfully.",
       success: true,
@@ -252,19 +274,19 @@ export const assignMemberToProject = async (req, res) => {
   }
 };
 
-
 export const deleteProject = async (req, res) => {
-
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let session;
   try {
-    const { id } = req.params;
-    const userId = req.id; 
+    session = await mongoose.startSession();
+    await session.startTransaction();
 
+    const { id } = req.params;
+    const userId = req.id;
 
     const project = await Project.findById(id);
 
     if (!project) {
+      await session.abortTransaction();
       return res.status(404).json({
         success: false,
         message: "Project not found",
@@ -272,48 +294,47 @@ export const deleteProject = async (req, res) => {
     }
 
     if (project.created_by.toString() !== userId) {
+      await session.abortTransaction();
       return res.status(403).json({
         success: false,
         message: "Only project owner can delete the project",
       });
     }
 
-    if (
-      project.members.length !== 1 ||
-      project.members[0].user.toString() !== userId
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "Project can only be deleted when you are the only member",
-      });
-    }
+    const channels = await Channel.find({ projectId: id });
+    const channelIds = channels.map((channel) => channel._id);
 
-     const channels = await Channel.find({ projectId: id });
-     const channelIds = channels.map((channel) => channel._id);
-     
+    // Delete all related data within the transaction
     await Promise.all([
-      Task.deleteMany({ projectId: id }),
-      Milestone.deleteMany({ projectId: id }),
-      ...(channelIds.length > 0
-        ? [Message.deleteMany({ channelId: { $in: channelIds } })]
-        : []),
-      Channel.deleteMany({ projectId: id }),
-      Project.findByIdAndDelete(id),
+      Task.deleteMany({ projectId: id }, { session }),
+      Milestone.deleteMany({ projectId: id }, { session }),
+      ProjectMessage.deleteMany(
+        { channelId: { $in: channelIds } },
+        { session }
+      ),
+      Channel.deleteMany({ projectId: id }, { session }),
+      Project.findByIdAndDelete(id, { session }),
+      User.updateMany({ project: id }, { $pull: { project: id } }, { session }),
     ]);
 
-    await User.findByIdAndUpdate(userId, {
-      $pull: { project: id },
-    });
+    await session.commitTransaction();
 
     return res.status(200).json({
       success: true,
       message: "Project deleted successfully",
     });
   } catch (error) {
+    if (session) {
+      await session.abortTransaction();
+    }
     console.error("Error deleting project:", error);
     return res.status(500).json({
       success: false,
       message: "Error deleting project",
     });
+  } finally {
+    if (session) {
+      session.endSession();
+    }
   }
 };

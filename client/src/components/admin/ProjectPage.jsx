@@ -5,9 +5,8 @@ import axios from "axios";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { setSingleProject } from "@/redux/projectSlice";
 import { PROJECT_API_END_POINT, CHANNEL_API_END_POINT } from "@/utils/constant";
-import CalendarView from "../ProjectMessages/components/CalendarView";
 import MembersList from "../ProjectMessages/MembersList";
-import MessageArea from "../ProjectMessages/MessagesArea";
+import ProjectMessagesArea from "../ProjectMessages/projectMessagesArea";
 import FilesView from "../ProjectMessages/components/FilesView";
 import MilestonesView from "../ProjectMessages/components/MilestonesView";
 import TasksView from "../ProjectMessages/components/TasksView";
@@ -37,6 +36,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import useGetProjectChannels from "@/hooks/useGetProjectChannel";
 import { setSelectedChannel } from "@/redux/channelSlice";
+import AnnouncementsChannel from "../ProjectMessages/components/AnnouncementsChannel";
+import GeneralChannel from "../ProjectMessages/components/GeneralChannel";
+import RoleBasedChannel from "../ProjectMessages/components/RoleBasedChannel";
 
 const ProjectPage = () => {
   // Core state
@@ -46,6 +48,7 @@ const ProjectPage = () => {
   const project = useSelector((state) => state.project.singleProject);
   const user = useSelector((state) => state.auth.user);
   const [membersInfo, setMembersInfo] = useState([]);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useGetProjectChannels(id);
 
@@ -74,14 +77,12 @@ const ProjectPage = () => {
     }
   };
 
-
   // Fetch project data and set up polling
   useEffect(() => {
     fetchProject();
     const pollInterval = setInterval(fetchProject, 30000);
     return () => clearInterval(pollInterval);
   }, [id]);
-
 
   // Fetch member information
   useEffect(() => {
@@ -169,7 +170,7 @@ const ProjectPage = () => {
               { id: "tasks", icon: ListTodo, label: "Tasks" },
               { id: "milestones", icon: Milestone, label: "Milestones" },
               { id: "files", icon: FileText, label: "Files" },
-              { id: "calendar", icon: Calendar, label: "Calendar" },
+              // { id: "calendar", icon: Calendar, label: "Calendar" },
             ].map(({ id, icon: Icon, label }) => (
               <button
                 key={id}
@@ -230,14 +231,17 @@ const ProjectPage = () => {
             <Button variant="ghost" size="icon">
               <Bell className="h-4 w-4" />
             </Button>
-            <Sheet>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <Users className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right">
-                <MembersList members={membersInfo} />
+                <MembersList
+                  members={membersInfo}
+                  onClose={() => setIsSheetOpen(false)}
+                />
               </SheetContent>
             </Sheet>
           </div>
@@ -246,13 +250,25 @@ const ProjectPage = () => {
         {/* Content Area */}
         <div className="flex-1 min-h-0">
           {selectedChannel ? (
-            <MessageArea channel={selectedChannel} />
+            <>
+              {selectedChannel.type === "announcement" ? (
+                <AnnouncementsChannel channel={selectedChannel} />
+              ) : selectedChannel.type === "default" ? (
+                <GeneralChannel channel={selectedChannel} />
+              ) : selectedChannel.type === "role-based" ? (
+                <RoleBasedChannel channel={selectedChannel} />
+              ) : (
+                <ProjectMessagesArea
+                  channel={selectedChannel}
+                  projectId={project._id}
+                />
+              )}
+            </>
           ) : (
             <div className="h-full p-4">
               {activeView === "tasks" && <TasksView />}
               {activeView === "milestones" && <MilestonesView />}
               {activeView === "files" && <FilesView />}
-              {activeView === "calendar" && <CalendarView />}
             </div>
           )}
         </div>

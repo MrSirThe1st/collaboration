@@ -1,17 +1,18 @@
 import multer from "multer";
 
 const storage = multer.memoryStorage();
+
 export const singleUpload = multer({
   storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 25 * 1024 * 1024, // 25MB limit
   },
-  fileFilter: (req, file, cb) => {
-    if (!file) return cb(null, true);
-    if (file.mimetype.startsWith("image/")) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only image files are allowed!"), false);
-    }
+}).single("file");
+
+// For multiple files upload
+export const multipleUpload = multer({
+  storage,
+  limits: {
+    fileSize: 25 * 1024 * 1024, // 25MB per file
   },
-}).single("file"); 
+}).array("files", 10); // Allow up to 10 files at once
