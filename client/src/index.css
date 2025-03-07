@@ -1,6 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 @layer base {
     /* --background: 0 0% 100%;
@@ -44,6 +47,11 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 222 50% 12%; 
     --radius: 0.5rem;
+
+    /* Add font-family variable - Uncomment your preferred option */
+    /* --font-sans: 'Outfit', system-ui, sans-serif; */
+    --font-sans: 'Figtree', system-ui, sans-serif;
+    /* --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif; */
   }
 
   .dark {
@@ -68,6 +76,14 @@
     --ring: 222 47% 11%;
     --radius: 0.5rem;
   }
+
+   html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
 }
 
 @layer base {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { CHANNEL_API_END_POINT } from "@/utils/constant";
@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Hash, Bell, Users, Plus, Trash2, MoreVertical } from "lucide-react";
+import { Hash, Bell, Users, Plus, Trash2, MoreVertical, } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +27,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -39,11 +38,18 @@ import {
   setSelectedChannel,
 } from "@/redux/channelSlice";
 
-const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
+const ChannelSystem = ({
+  projectId,
+  isProjectOwner,
+  membersInfo,
+  isMobile,
+}) => {
   const [showNewChannelDialog, setShowNewChannelDialog] = useState(false);
   const [showMembersSheet, setShowMembersSheet] = useState(false);
   const [selectedChannelMembers, setSelectedChannelMembers] = useState([]);
   const [newChannel, setNewChannel] = useState({ name: "", selectedRole: "" });
+  const [isLoading, setIsLoading] = useState(false);
+  const project = useSelector((state) => state.project.singleProject);
 
   const dispatch = useDispatch();
   const { channels } = useSelector((state) => state.channel);
@@ -78,6 +84,7 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
   };
 
   const handleCreateChannel = async () => {
+    setIsLoading(true);
     try {
       if (!newChannel.name.trim()) {
         toast.error("Channel name is required");
@@ -91,7 +98,15 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
 
       const roleMembers = getMembersByRole(newChannel.selectedRole);
       const memberIds = roleMembers.map((member) => member._id);
+
+      // Now we can safely access project.created_by
+      if (project && !memberIds.includes(project.created_by)) {
+        memberIds.push(project.created_by);
+      }
+
       const formattedName = newChannel.name.toLowerCase().replace(/\s+/g, "-");
+
+      console.log("Members being sent:", memberIds); // Debug log
 
       const response = await axios.post(
         `${CHANNEL_API_END_POINT}/create`,
@@ -114,10 +129,13 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
     } catch (error) {
       console.error("Error creating channel:", error);
       toast.error(error.response?.data?.message || "Failed to create channel");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDeleteChannel = async (channelId) => {
+    setIsLoading(true);
     try {
       const response = await axios.delete(
         `${CHANNEL_API_END_POINT}/delete/${channelId}`,
@@ -134,6 +152,8 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
     } catch (error) {
       console.error("Error deleting channel:", error);
       toast.error("Failed to delete channel");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -145,7 +165,7 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
     (channel) => channel.type === "role-based"
   );
 
-  const ChannelButton = ({ channel, canDelete = false }) => (
+  const ChannelButton = ({ channel, canDelete = false, isMobile }) => (
     <div key={channel._id} className="group relative">
       <button
         className={cn(
@@ -157,11 +177,6 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
       >
         {getChannelIcon(channel.type)}
         <span className="flex-1 text-left">{channel.name}</span>
-        <Badge variant="outline" className="text-xs">
-          {channel.type === "role-based"
-            ? `${channel.role} (${getMembersByRole(channel.role).length})`
-            : `${membersInfo.length} members`}
-        </Badge>
         <Button
           variant="ghost"
           size="icon"
@@ -205,17 +220,22 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
 
   return (
     <div className="flex-1 overflow-hidden">
-      <ScrollArea className="h-full">
-        <div className="space-y-2 p-2">
+      <ScrollArea className={`h-full ${isMobile ? "px-2" : ""}`}>
+        <div className="space-y-2">
           {/* Default Channels */}
           <div className="space-y-[2px]">
             {defaultChannels.map((channel) => (
-              <ChannelButton key={channel._id} channel={channel} />
+              <ChannelButton
+                key={channel._id}
+                channel={channel}
+                isMobile={isMobile}
+              />
             ))}
           </div>
 
           {/* Role Channels section */}
-          <Separator />
+          <Separator className={isMobile ? "my-4" : "my-2"} />
+
           <div className="flex items-center justify-between px-2">
             <h3 className="text-sm font-medium text-muted-foreground">
               Role Channels
@@ -225,6 +245,7 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowNewChannelDialog(true)}
+                className={isMobile ? "h-8 w-8" : ""}
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -233,7 +254,12 @@ const ChannelSystem = ({ projectId, isProjectOwner, membersInfo }) => {
 
           <div className="space-y-[2px]">
             {roleChannels.map((channel) => (
-              <ChannelButton key={channel._id} channel={channel} canDelete />
+              <ChannelButton
+                key={channel._id}
+                channel={channel}
+                canDelete
+                isMobile={isMobile}
+              />
             ))}
           </div>
         </div>

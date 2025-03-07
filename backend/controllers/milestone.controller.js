@@ -197,17 +197,15 @@ export const deleteMilestone = async (req, res) => {
       });
     }
 
-    // Update all tasks associated with this milestone to remove the milestone reference
-    await Task.updateMany(
-      { milestone: id },
-      { $unset: { milestone: "" } }
-    );
+    // First delete all tasks associated with this milestone
+    await Task.deleteMany({ milestone: id });
 
+    // Then delete the milestone itself
     await Milestone.findByIdAndDelete(id);
 
     return res.status(200).json({
       success: true,
-      message: "Milestone deleted successfully",
+      message: "Milestone and associated tasks deleted successfully",
     });
   } catch (error) {
     console.error(error);

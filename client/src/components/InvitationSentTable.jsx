@@ -1,4 +1,3 @@
-import React from "react";
 import { Clock, X, Check, Trash2 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { Button } from "./ui/button";
@@ -52,13 +51,13 @@ const InvitationSentCard = () => {
             <TooltipContent>Pending</TooltipContent>
           </Tooltip>
         );
-      case "rejected":
+      case "declined":
         return (
           <Tooltip>
             <TooltipTrigger>
               <X className="text-red-500 h-4 w-4" />
             </TooltipTrigger>
-            <TooltipContent>Rejected</TooltipContent>
+            <TooltipContent>Declined</TooltipContent>
           </Tooltip>
         );
       case "accepted":
@@ -77,28 +76,30 @@ const InvitationSentCard = () => {
 
   return (
     <TooltipProvider>
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {allSentInvitations.length <= 0 ? (
-          <span>You haven't sent any invitation yet.</span>
+          <span className="text-muted-foreground">
+            You have not sent any invitation yet.
+          </span>
         ) : (
           allSentInvitations.map((sentInvitation) => (
             <div
               key={sentInvitation._id}
-              className="p-4 border shadow-sm rounded-md flex justify-between items-center"
+              className="p-3 sm:p-4 border rounded-md flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0"
             >
               <div className="flex flex-col space-y-1">
                 <span className="text-sm font-medium">
                   {sentInvitation.project?.title || "N/A"}
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-muted-foreground">
                   Sent to: {sentInvitation.recipient?.username || "N/A"}
                 </span>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-muted-foreground">
                   {sentInvitation?.createdAt?.split("T")[0]}
                 </span>
               </div>
 
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-end sm:justify-center space-x-3">
                 <div className="w-8 h-8 flex items-center justify-center">
                   {getStatusIcon(sentInvitation.status)}
                 </div>

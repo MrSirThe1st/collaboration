@@ -1,266 +1,251 @@
-import React, { useState } from "react";
-import { Avatar, AvatarImage } from "./ui/avatar";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog";
 import { Button } from "./ui/button";
-import { Contact, Mail, Pen, Save, X } from "lucide-react";
 import { Badge } from "./ui/badge";
-import { Label } from "./ui/label";
-import { Input } from "./ui/input";
-import { Textarea } from "./ui/textarea";
-import { useDispatch, useSelector } from "react-redux";
-import SkillSelector from "./SkillSelector";
-import axios from "axios";
+import { Mail, Edit, Github, Linkedin, Globe } from "lucide-react";
 import { USER_API_END_POINT } from "@/utils/constant";
 import { setUser } from "@/redux/authSlice";
 import { toast } from "sonner";
+import Flag from "react-world-flags";
+import UserAvatar from "./customUI/UserAvatar";
+import Footer from "./shared/Footer";
+import { useDispatch } from "react-redux";
+import axios from "axios";
 
 const Profile = () => {
-  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const { user } = useSelector((store) => store.auth);
+  const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [input, setInput] = useState({
-    username: user?.username || "",
-    email: user?.email || "",
-    phoneNumber: user?.phoneNumber || "",
-    bio: user?.profile?.bio || "",
-    file: null,
-    github: user?.profile?.socialLinks?.github || "",
-    linkedin: user?.profile?.socialLinks?.linkedin || "",
-    portfolio: user?.profile?.socialLinks?.portfolio || "",
-  });
-
-  const [selectedSkills, setSelectedSkills] = useState(
-    user?.profile?.skills.map((skill) => ({ name: skill })) || []
-  );
-
-  const handleChange = (e) => {
-    setInput({ ...input, [e.target.name]: e.target.value });
-  };
-
-  const handleFileChange = (e) => {
-    setInput({ ...input, file: e.target.files[0] });
-  };
-
-  const handleSubmit = async () => {
-    const formData = new FormData();
-    Object.keys(input).forEach((key) => {
-      if (input[key]) formData.append(key, input[key]);
-    });
-    formData.append(
-      "skills",
-      JSON.stringify(selectedSkills.map((skill) => skill.name))
-    );
-
+  const handleDeleteAccount = async () => {
     try {
       setLoading(true);
-      const res = await axios.post(
-        `${USER_API_END_POINT}/profile/update`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true,
-        }
+      const response = await axios.delete(
+        `${USER_API_END_POINT}/delete-account`,
+        { withCredentials: true }
       );
-      if (res.data.success) {
-        dispatch(setUser(res.data.user));
-        toast.success(res.data.message);
-        setIsEditing(false);
+
+      if (response.data.success) {
+        dispatch(setUser(null));
+        toast.success("Account deleted successfully");
+        navigate("/login");
       }
     } catch (error) {
-      console.log(error);
-      toast.error(error.response.data.message);
+      console.error("Error deleting account:", error);
+      toast.error(error.response?.data?.message || "Failed to delete account");
     } finally {
       setLoading(false);
     }
   };
 
+  // Protected against missing user data with fallbacks
+  const skills = user?.profile?.skills || [];
+  const github = user?.profile?.socialLinks?.github || "";
+  const linkedin = user?.profile?.socialLinks?.linkedin || "";
+  const portfolio = user?.profile?.socialLinks?.portfolio || "";
+  const country = user?.profile?.country;
+  const bio = user?.profile?.bio || "No bio provided yet";
+
   return (
-    <div className="flex flex-col">
-      <main className="flex flex-1 flex-col gap-4 p-2 lg:gap-2 lg:px-6">
-        <div className="flex flex-1 items-center my-5 p-3 rounded-lg border border-dashed shadow-sm">
-          <div className="flex-col items-center gap-1 text-center w-full">
-            <div className="max-w-4xl mx-auto rounded-2xl my-5 p-8">
-              <div className="flex justify-between items-start mb-8">
-                <div className="flex items-center gap-6">
-                  <div className="relative">
-                    <Avatar className="h-24 w-24">
-                      <AvatarImage
-                        src={user?.profile?.profilePhoto}
-                        alt={user?.username}
-                      />
-                    </Avatar>
-                    {isEditing && (
-                      <Input
-                        type="file"
-                        onChange={handleFileChange}
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                        accept="image/*"
-                      />
-                    )}
-                  </div>
-                  <div className="space-y-2 text-left">
-                    {isEditing ? (
-                      <Input
-                        name="username"
-                        value={input.username}
-                        onChange={handleChange}
-                        className="text-xl font-medium"
-                      />
-                    ) : (
-                      <h1 className="text-xl font-medium">{user?.username}</h1>
-                    )}
-                    {isEditing ? (
-                      <Textarea
-                        name="bio"
-                        value={input.bio}
-                        onChange={handleChange}
-                        rows={3}
-                        placeholder="Tell us about yourself..."
-                      />
-                    ) : (
-                      <p>
-                        {user?.profile?.bio || "No bio yet"}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  {isEditing ? (
-                    <div className="space-x-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsEditing(false)}
-                        disabled={loading}
-                      >
-                        <X className="w-4 h-4 mr-1" />
-                        Cancel
-                      </Button>
-                      <Button onClick={handleSubmit} disabled={loading}>
-                        <Save className="w-4 h-4 mr-1" />
-                        {loading ? "Saving..." : "Save Changes"}
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsEditing(true)}
-                    >
-                      <Pen className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Header section */}
+      
+
+      {/* Main content */}
+      <div className="flex-1 w-full max-w-4xl mx-auto px-4 py-6">
+        <div className="flex justify-between items-center mb-4">
+          <Link to="/profile/edit">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Edit className="h-4 w-4" />
+              <span className="hidden sm:inline">Edit Profile</span>
+            </Button>
+          </Link>
+        </div>
+        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+          {/* Cover photo area with gradient */}
+          <div className="h-32 bg-gradient-to-r from-primary/20 to-secondary/20 relative">
+            <div className="absolute -bottom-12 left-8">
+              <UserAvatar
+                user={user}
+                className="w-24 h-24 border-4 border-background"
+                size="lg"
+                showStatus
+              />
+            </div>
+          </div>
+
+          {/* Profile details */}
+          <div className="pt-16 pb-6 px-8">
+            <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+              <div>
+                <h2 className="text-2xl font-bold">{user?.username}</h2>
+                <p className="text-muted-foreground">
+                  {user?.profession || "No profession listed"}
+                </p>
               </div>
 
-              <div className="space-y-6 text-left">
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <Label>Email</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Mail className="w-4 h-4 text-gray-500" />
-                      <span>{user?.email}</span>
-                    </div>
-                  </div>
+              {/* Country badge if available */}
+              {country && (
+                <div className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-full">
+                  <Flag code={country.code} className="h-4 w-6 object-cover" />
+                  <span className="text-sm font-medium">{country.name}</span>
                 </div>
+              )}
+            </div>
 
-                <div>
-                  <Label>Skills</Label>
-                  {isEditing ? (
-                    <SkillSelector
-                      selectedSkills={selectedSkills}
-                      onSkillSelect={setSelectedSkills}
-                    />
-                  ) : (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {user?.profile?.skills?.length > 0 ? (
-                        user.profile.skills.map((skill, index) => (
-                          <Badge key={index} variant="secondary">
-                            {skill}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="text-gray-500">
-                          No skills added yet
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
+            {/* Bio section */}
+            <div className="mt-6">
+              <h3 className="text-lg font-medium mb-2">About</h3>
+              <div className="bg-muted/50 rounded-lg p-4 text-sm md:text-base">
+                {bio}
+              </div>
+            </div>
 
-                <div className="grid grid-cols-2 gap-6">
-                  {isEditing ? (
-                    <>
-                      <div>
-                        <Label>GitHub</Label>
-                        <Input
-                          name="github"
-                          value={input.github}
-                          onChange={handleChange}
-                          placeholder="GitHub profile URL"
-                        />
-                      </div>
-                      <div>
-                        <Label>LinkedIn</Label>
-                        <Input
-                          name="linkedin"
-                          value={input.linkedin}
-                          onChange={handleChange}
-                          placeholder="LinkedIn profile URL"
-                        />
-                      </div>
-                      <div>
-                        <Label>Portfolio</Label>
-                        <Input
-                          name="portfolio"
-                          value={input.portfolio}
-                          onChange={handleChange}
-                          placeholder="Portfolio website URL"
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <div className="col-span-2 space-y-2">
-                      <Label>Social Links</Label>
-                      <div className="flex gap-4">
-                        {user?.profile?.socialLinks?.github && (
-                          <a
-                            href={user.profile.socialLinks.github}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline"
-                          >
-                            GitHub
-                          </a>
-                        )}
-                        {user?.profile?.socialLinks?.linkedin && (
-                          <a
-                            href={user.profile.socialLinks.linkedin}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className=" hover:underline"
-                          >
-                            LinkedIn
-                          </a>
-                        )}
-                        {user?.profile?.socialLinks?.portfolio && (
-                          <a
-                            href={user.profile.socialLinks.portfolio}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className=" hover:underline"
-                          >
-                            Portfolio
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  )}
+            {/* Contact information */}
+            <div className="mt-6">
+              <h3 className="text-lg font-medium mb-2">Contact</h3>
+              <div className="flex items-center gap-2 text-sm md:text-base">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span>{user?.email}</span>
+              </div>
+            </div>
+
+            {/* Skills */}
+            <div className="mt-6">
+              <h3 className="text-lg font-medium mb-2">Skills</h3>
+              {skills.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {skills.map((skill, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="px-3 py-1"
+                    >
+                      {skill}
+                    </Badge>
+                  ))}
                 </div>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  No skills added yet
+                </p>
+              )}
+            </div>
+
+            {/* Social Links */}
+            <div className="mt-6">
+              <h3 className="text-lg font-medium mb-2">Social Links</h3>
+              <div className="flex flex-wrap gap-4">
+                {github && (
+                  <a
+                    href={github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+                  >
+                    <Github className="h-5 w-5" />
+                    <span>GitHub</span>
+                  </a>
+                )}
+
+                {linkedin && (
+                  <a
+                    href={linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+                  >
+                    <Linkedin className="h-5 w-5" />
+                    <span>LinkedIn</span>
+                  </a>
+                )}
+
+                {portfolio && (
+                  <a
+                    href={portfolio}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+                  >
+                    <Globe className="h-5 w-5" />
+                    <span>Portfolio</span>
+                  </a>
+                )}
+
+                {!github && !linkedin && !portfolio && (
+                  <p className="text-muted-foreground text-sm">
+                    No social links added
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Danger Zone */}
+            <div className="mt-10 pt-6 border-t border-border">
+              <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-2">
+                  Danger Zone
+                </h3>
+                <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+                  Once you delete your account, there is no going back. This
+                  action is permanent.
+                </p>
+
+                <AlertDialog
+                  open={showDeleteDialog}
+                  onOpenChange={setShowDeleteDialog}
+                >
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      className="bg-red-600 hover:bg-red-700"
+                      disabled={loading}
+                    >
+                      {loading ? "Processing..." : "Delete Account"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you absolutely sure?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently
+                        delete your account and all your data.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-red-600 hover:bg-red-700"
+                        onClick={handleDeleteAccount}
+                      >
+                        Delete Account
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           </div>
         </div>
-      </main>
+      </div>
+
+      <Footer />
     </div>
   );
 };

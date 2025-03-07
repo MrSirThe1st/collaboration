@@ -9,7 +9,8 @@ const inboxSlice = createSlice({
     messages: [],
     loading: false,
     error: null,
-    unreadCounts: {}, // { userId: count }
+    unreadCounts: {},
+    totalUnread: 0,
   },
   reducers: {
     resetInbox: (state) => {
@@ -34,9 +35,30 @@ const inboxSlice = createSlice({
     setError: (state, action) => {
       state.error = action.payload;
     },
-    updateUnreadCount: (state, action) => {
-      const { userId, count } = action.payload;
-      state.unreadCounts[userId] = count;
+    incrementUnreadCount: (state, action) => {
+      const conversationId = action.payload;
+      state.unreadCounts[conversationId] =
+        (state.unreadCounts[conversationId] || 0) + 1;
+      state.totalUnread += 1;
+    },
+
+    clearUnreadCount: (state, action) => {
+      const conversationId = action.payload;
+      if (conversationId in state.unreadCounts) {
+        state.totalUnread -= state.unreadCounts[conversationId];
+        state.unreadCounts[conversationId] = 0;
+      }
+    },
+
+    setInitialUnreadCounts: (state, action) => {
+      const counts = {};
+      let total = 0;
+      action.payload.forEach((conv) => {
+        counts[conv._id] = conv.unreadCount || 0;
+        total += conv.unreadCount || 0;
+      });
+      state.unreadCounts = counts;
+      state.totalUnread = total;
     },
   },
 });
@@ -49,7 +71,15 @@ export const {
   addMessage,
   setLoading,
   setError,
-  updateUnreadCount,
+  incrementUnreadCount,
+  clearUnreadCount,
+  setInitialUnreadCounts,
 } = inboxSlice.actions;
+
+export const selectTotalUnreadMessages = (state) =>
+  Object.values(state.inbox.unreadCounts).reduce(
+    (sum, count) => sum + count,
+    0
+  );
 
 export default inboxSlice.reducer;

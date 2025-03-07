@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { format } from "date-fns";
 import {
-  Megaphone,
-  Pin,
   MoreVertical,
   AlertCircle,
   Check,
   FileText,
-  Paperclip,
-  Trash2
+  Trash2,
+  Loader,
 } from "lucide-react";
 import { CHANNEL_API_END_POINT } from "@/utils/constant";
 import { Button } from "@/components/ui/button";
@@ -30,9 +28,8 @@ import { useSocketContext } from "../../../../context/SocketContext";
 const AnnouncementsChannel = ({ channel }) => {
   const [announcements, setAnnouncements] = useState([]);
   const [newAnnouncement, setNewAnnouncement] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-
   const user = useSelector((state) => state.auth.user);
   const project = useSelector((state) => state.project.singleProject);
 
@@ -66,8 +63,8 @@ const AnnouncementsChannel = ({ channel }) => {
   }, [channel._id]);
 
   const fetchAnnouncements = async () => {
+    setIsLoading(true);
     try {
-      setLoading(true);
       const response = await axios.get(
         `${CHANNEL_API_END_POINT}/${channel._id}/pinned`,
         { withCredentials: true }
@@ -77,10 +74,9 @@ const AnnouncementsChannel = ({ channel }) => {
         setAnnouncements(response.data.messages);
       }
     } catch (error) {
-      console.error("Error fetching announcements:", error);
       toast.error("Failed to load announcements");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -111,11 +107,10 @@ const AnnouncementsChannel = ({ channel }) => {
     }
   };
 
-
   const handleDeleteAnnouncement = async (announcementId) => {
     try {
       const response = await axios.delete(
-        `${CHANNEL_API_END_POINT}/announcement/${announcementId}`,
+        `${CHANNEL_API_END_POINT}/message/${announcementId}`,
         { withCredentials: true }
       );
 
@@ -173,20 +168,20 @@ const AnnouncementsChannel = ({ channel }) => {
             </Badge>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
+                {announcement.sender._id === user?._id && (
+                  <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                )}
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {announcement.sender._id === user?._id && (
-                  <DropdownMenuItem
-                    className="text-red-600"
-                    onClick={() => handleDeleteAnnouncement(announcement._id)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={() => handleDeleteAnnouncement(announcement._id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -217,18 +212,6 @@ const AnnouncementsChannel = ({ channel }) => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="p-4 border-b">
-        <div className="flex items-center gap-2">
-          <Megaphone className="h-5 w-5" />
-          <h2 className="font-semibold text-lg">Announcements</h2>
-        </div>
-        <p className="text-sm text-muted-foreground mt-1">
-          Important updates and announcements for all project members
-        </p>
-      </div>
-
-      {/* Post announcement form */}
       {canPostAnnouncement && (
         <div className="p-4 border-b">
           <Textarea
@@ -237,10 +220,7 @@ const AnnouncementsChannel = ({ channel }) => {
             placeholder="Post an announcement..."
             className="mb-3"
           />
-          <div className="flex justify-between items-center">
-            <Button variant="outline" size="icon">
-              <Paperclip className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center">
             <Button
               onClick={handlePostAnnouncement}
               disabled={submitting || !newAnnouncement.trim()}
@@ -253,9 +233,9 @@ const AnnouncementsChannel = ({ channel }) => {
 
       {/* Announcements list */}
       <ScrollArea className="flex-1 p-4">
-        {loading ? (
-          <div className="flex items-center justify-center h-full">
-            Loading announcements...
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : announcements.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
@@ -274,6 +254,7 @@ const AnnouncementsChannel = ({ channel }) => {
           ))
         )}
       </ScrollArea>
+  
     </div>
   );
 };

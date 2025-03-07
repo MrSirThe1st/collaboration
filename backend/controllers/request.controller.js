@@ -1,5 +1,6 @@
 import { Request } from "../models/request.model.js";
 import { Project } from "../models/project.model.js";
+import { User } from "../models/user.model.js";
 
 export const sendRequest = async (req, res) => {
   try {
@@ -41,7 +42,7 @@ export const sendRequest = async (req, res) => {
     project.requests.push(newRequest._id);
     await project.save();
     return res.status(201).json({
-      message: "project applied successfully.",
+      message: "request sent successfully.",
       success: true,
     });
   } catch (error) {
@@ -85,7 +86,7 @@ export const getRequesters = async (req, res) => {
       options: { sort: { createdAt: -1 } },
       populate: {
         path: "requester",
-        select: "username email profession profile",
+        select: "username email profession profile role ",
       },
     });
 

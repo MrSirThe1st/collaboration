@@ -1,19 +1,17 @@
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Plus, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import MessageButton from "./components/MessageButton";
 import { resetInbox } from "@/redux/inboxSlice";
+import UserAvatar from "../customUI/UserAvatar";
 
 const MembersList = ({ members, onClose }) => {
   const groupedMembers = members?.reduce((acc, member) => {
@@ -28,6 +26,11 @@ const MembersList = ({ members, onClose }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const project = useSelector((state) => state.project.singleProject);
+  const user = useSelector((state) => state.auth.user);
+
+  const isProjectOwner = project?.created_by === user?._id;
+
   const handleMessageClick = (member) => {
     dispatch(resetInbox());
     if (onClose) onClose(); // Close the members list sidebar first
@@ -41,7 +44,7 @@ const MembersList = ({ members, onClose }) => {
           startChat: true,
           existingChat: false,
         },
-        replace: true, 
+        replace: true,
       });
     }, 100);
   };
@@ -94,12 +97,11 @@ const MembersList = ({ members, onClose }) => {
                   key={member.id}
                   className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors"
                 >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={member.profile?.profilePhoto} />
-                    <AvatarFallback>
-                      {member.username?.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar
+                    user={member} 
+                    size="sm" 
+                    showStatus 
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
                       {member.username}
@@ -126,10 +128,11 @@ const MembersList = ({ members, onClose }) => {
                         Send Message
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem>Change Role</DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
-                        Remove from Project
-                      </DropdownMenuItem>
+                      {isProjectOwner && (
+                        <DropdownMenuItem className="text-red-600">
+                          Remove from Project
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -139,10 +142,10 @@ const MembersList = ({ members, onClose }) => {
         ))}
       </div>
 
-      <Button className="w-full mt-4">
+      {/* <Button className="w-full mt-4">
         <Plus className="mr-2 h-4 w-4" />
         Invite Member
-      </Button>
+      </Button> */}
     </div>
   );
 };

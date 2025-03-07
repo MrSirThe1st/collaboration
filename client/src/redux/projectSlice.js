@@ -1,4 +1,17 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios"; 
+import { PROJECT_API_END_POINT } from "@/utils/constant"; 
+
+
+export const fetchProjects = createAsyncThunk(
+  "project/fetchProjects",
+  async () => {
+    const response = await axios.get(`${PROJECT_API_END_POINT}/get`, {
+      withCredentials: true,
+    });
+    return response.data.projects;
+  }
+);
 
 const ProjectSlice = createSlice({
   name: "project",
@@ -10,9 +23,13 @@ const ProjectSlice = createSlice({
     allRequestedProjects: [],
     searchedQuery: "",
     allSentInvitations: [],
+    loading: false,
+    error: null,
   },
   reducers: {
-    // actions
+    setLoading: (state, action) => {
+      state.loading = action.payload;
+    },
     setAllProjects: (state, action) => {
       state.allProjects = action.payload;
     },
@@ -36,23 +53,32 @@ const ProjectSlice = createSlice({
     },
     updateProjectMember: (state, action) => {
       const { projectId, memberId, role } = action.payload;
-      const projectIndex = state.allAdminProjects.findIndex(
-        (p) => p._id === projectId
-      );
-      if (projectIndex !== -1) {
-        const project = state.allAdminProjects[projectIndex];
-        const memberIndex = project.members.findIndex(
-          (m) => m.user === memberId
-        );
-        if (memberIndex !== -1) {
-          project.members[memberIndex].roles.push(role);
+      const project = state.allAdminProjects.find((p) => p._id === projectId);
+      if (project) {
+        const member = project.members.find((m) => m.user === memberId);
+        if (member) {
+          member.roles.push(role);
         } else {
           project.members.push({ user: memberId, roles: [role] });
         }
       }
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchProjects.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchProjects.fulfilled, (state, action) => {
+        state.loading = false;
+        state.allProjects = action.payload;
+      })
+      .addCase(fetchProjects.rejected, (state) => {
+        state.loading = false;
+      });
+  },
 });
+
 export const {
   setAllProjects,
   setSingleProject,
@@ -61,6 +87,8 @@ export const {
   setAllRequestedProjects,
   setAllSentInvitations,
   setSearchedQuery,
-  updateProjectMember
+  updateProjectMember,
+  setLoading,
 } = ProjectSlice.actions;
+
 export default ProjectSlice.reducer;

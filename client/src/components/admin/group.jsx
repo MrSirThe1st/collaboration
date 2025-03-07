@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "../ui/button";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { updateProjectMember, setAllAdminProjects } from "@/redux/projectSlice";
+import { setAllAdminProjects } from "@/redux/projectSlice";
 import { setMembers, setSingleGroup } from "@/redux/groupSlice";
 import {
   AlertDialog,
@@ -27,6 +27,7 @@ import {
   CheckCircle,
   XCircle,
   Plus,
+  Edit,
 } from "lucide-react";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import {
@@ -37,7 +38,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -53,6 +53,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import UserAvatar from "../customUI/UserAvatar";
 
 const Group = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -70,11 +71,18 @@ const Group = () => {
   const [showDeleteRequestDialog, setShowDeleteRequestDialog] = useState(false);
 
   const { id } = useParams();
-  const user = useSelector((state) => state.auth.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { singleGroup } = useSelector((state) => state.group);
   const { allAdminProjects } = useSelector((state) => state.project);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     if (!id) {
@@ -274,7 +282,7 @@ const Group = () => {
   }, [id, dispatch]);
 
   const handleProjectDelete = async (project) => {
-
+    setIsLoading(true);
     try {
       const response = await axios.delete(
         `${PROJECT_API_END_POINT}/delete/${project._id}`,
@@ -293,6 +301,8 @@ const Group = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to delete project");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -340,30 +350,38 @@ const Group = () => {
   return (
     <div className="max-w-6xl mx-auto my-10 px-4">
       {singleGroup && (
-        <div className="my-5 rounded-lg  shadow-lg p-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <img
-                src={singleGroup.cover || "default-group-logo.png"}
-                alt={singleGroup.name}
-                className="w-20 h-20 rounded-full object-cover ring-2 ring-primary/10"
-              />
-              <div>
-                <h1 className="text-3xl font-bold">{singleGroup.name}</h1>
-                <Badge variant="secondary" className="mt-2">
-                  {singleGroup.status}
-                </Badge>
-                <p className="mt-2 text-muted-foreground max-w-2xl">
+        <div className="my-3 sm:my-5 rounded-lg">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 w-full">
+              {singleGroup.cover ? (
+                <img
+                  src={singleGroup.cover}
+                  alt={singleGroup.name}
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover ring-2 ring-primary/10"
+                />
+              ) : (
+                // Using first two letters instead of one
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full ring-2 ring-primary/10 bg-gradient-to-br from-primary/5 to-primary/30 flex items-center justify-center">
+                  <span className="text-xl sm:text-2xl font-bold text-primary/40">
+                    {singleGroup.name?.slice(0, 2)?.toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <div className="text-center sm:text-left">
+                <h1 className="text-2xl sm:text-3xl font-bold">
+                  {singleGroup.name}
+                </h1>
+                <p className="mt-2 text-muted-foreground max-w-2xl text-sm sm:text-base">
                   {singleGroup.description}
                 </p>
               </div>
             </div>
             <Button
               onClick={() => navigate("/admin/projects/create")}
-              size="lg"
-              className="flex items-center gap-2"
+              size={isMobile ? "default" : "lg"}
+              className="w-full sm:w-auto flex items-center gap-2"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
               Create Project
             </Button>
           </div>
@@ -371,32 +389,37 @@ const Group = () => {
       )}
 
       <div className="my-8 space-y-6">
-        <h2 className="text-2xl font-bold">Group Projects</h2>
         <div className="grid grid-cols-1 gap-6">
           {allAdminProjects.map((project) => (
             <Card key={project._id} className="overflow-hidden">
-              <CardHeader>
-                <div className="flex justify-between items-start">
+              <CardHeader
+                className="cursor-pointer hover:bg-accent/50 transition-colors"
+                onClick={() => navigate(`/admin/projects/${project._id}/page`)}
+              >
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                   <div>
                     <CardTitle className="text-xl">{project.title}</CardTitle>
                     <CardDescription className="mt-2">
                       {project.description.substring(0, 150)}...
                     </CardDescription>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 self-end sm:self-start">
                     <Button
                       variant="outline"
-                      onClick={() =>
-                        navigate(`/admin/projects/${project._id}/page`)
-                      }
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/admin/projects/${project._id}/edit`);
+                      }}
                     >
-                      View Details
+                      <Edit className="h-4 w-4" />
                     </Button>
 
                     <Button
                       variant="destructive"
                       size="icon"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setProjectToDelete(project);
                         setShowDeleteDialog(true);
                       }}
@@ -408,41 +431,34 @@ const Group = () => {
               </CardHeader>
 
               <CardContent className="pt-6">
-                <div className="flex gap-4 mb-6">
+                <div className="flex flex-wrap gap-2 mb-6">
                   <Badge variant="secondary">
-                    {project.members.length} Members
+                    {project.members.length}{" "}
+                    {project.members.length === 1 ? "Member" : "Members"}
                   </Badge>
                   <Badge variant="secondary">
-                    {projectRequests[project._id]?.length || 0} Requests
+                    {projectRequests[project._id]?.length || 0}{" "}
+                    {(projectRequests[project._id]?.length || 0) === 1
+                      ? "Request"
+                      : "Requests"}
                   </Badge>
                 </div>
-
                 {projectRequests[project._id]?.length > 0 && (
                   <div className="mt-4">
-                    <h3 className="text-lg font-semibold mb-4">Requests</h3>
+                    <h3 className="text-lg font-semibold mb-2">Requests</h3>
                     <div className="space-y-4">
                       {projectRequests[project._id].map((request) => {
                         const requesterId =
                           request.requester?._id || request.requester;
                         const requester = requesters[requesterId];
-
+                        console.log("Requester data:", requester);
                         return (
                           <div
                             key={request._id}
                             className="flex items-center justify-between p-4 border rounded-lg"
                           >
                             <div className="flex items-center space-x-4">
-                              <Avatar className="h-10 w-10">
-                                <AvatarImage
-                                  src={requester?.profile?.profilePhoto}
-                                  alt={requester?.username || "User"}
-                                />
-                                <AvatarFallback>
-                                  {requester?.username
-                                    ?.slice(0, 2)
-                                    .toUpperCase() || "U"}
-                                </AvatarFallback>
-                              </Avatar>
+                              <UserAvatar user={requester} size="default" />
                               <div>
                                 <p className="font-medium">
                                   {requester?.username || "Loading..."}
@@ -492,7 +508,6 @@ const Group = () => {
                                   </Button>
                                 </>
                               ) : (
-                                // Add delete button for non-pending requests
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -568,7 +583,7 @@ const Group = () => {
               Delete Project
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{projectToDelete?.title}"? This
+              Are you sure you want to delete {projectToDelete?.title}? This
               action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -10,9 +10,12 @@ export const singleUpload = multer({
 }).single("file");
 
 // For multiple files upload
-export const multipleUpload = multer({
+export const projectUpload = multer({
   storage,
   limits: {
     fileSize: 25 * 1024 * 1024, // 25MB per file
   },
-}).array("files", 10); // Allow up to 10 files at once
+}).fields([
+  { name: "logo", maxCount: 1 },
+  { name: "cover", maxCount: 1 },
+]);

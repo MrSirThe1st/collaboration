@@ -369,14 +369,15 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    // If it's a role-based channel, verify user has the correct role
+    // If it's a role-based channel, verify user has the correct role OR is the project admin
     if (channel.type === "role-based") {
       const project = await Project.findById(channel.projectId);
+      const isAdmin = project.created_by.toString() === userId;
       const hasRole = project.members.some(
         (m) => m.user.toString() === userId && m.role === channel.role
       );
 
-      if (!hasRole) {
+      if (!isAdmin && !hasRole) {
         return res.status(403).json({
           success: false,
           message: "You don't have the required role for this channel",
@@ -429,15 +430,7 @@ export const getChannelMessages = async (req, res) => {
       });
     }
 
-    // Check if user is a member of the channel
-    if (!channel.members.includes(userId)) {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to view messages",
-      });
-    }
-
-    // Get messages with pagination
+    // Get messages regardless of membership
     const messages = await ProjectMessage.find({
       channelId,
       type: "message",
@@ -449,26 +442,29 @@ export const getChannelMessages = async (req, res) => {
       .populate("sender", "username email profile")
       .populate("readBy.user", "username profile.profilePhoto");
 
-    // Mark messages as read by this user
-    const unreadMessages = messages.filter(
-      (msg) => !msg.readBy.some((read) => read.user.toString() === userId)
-    );
-
-    if (unreadMessages.length > 0) {
-      await Promise.all(
-        unreadMessages.map((msg) =>
-          ProjectMessage.findByIdAndUpdate(msg._id, {
-            $addToSet: { readBy: { user: userId } },
-          })
-        )
+    // Check if user is a member to mark messages as read
+    if (channel.members.includes(userId)) {
+      const unreadMessages = messages.filter(
+        (msg) => !msg.readBy.some((read) => read.user.toString() === userId)
       );
+
+      if (unreadMessages.length > 0) {
+        await Promise.all(
+          unreadMessages.map((msg) =>
+            ProjectMessage.findByIdAndUpdate(msg._id, {
+              $addToSet: { readBy: { user: userId } },
+            })
+          )
+        );
+      }
     }
 
     return res.status(200).json({
       success: true,
-      messages: messages.reverse(), // Send in chronological order
+      messages: messages.reverse(),
       page,
       limit,
+      canInteract: channel.members.includes(userId), // Add this flag
     });
   } catch (error) {
     console.error("Error fetching messages:", error);

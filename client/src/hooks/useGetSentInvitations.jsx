@@ -1,15 +1,17 @@
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import axios from "axios";
 import { setAllSentInvitations } from "@/redux/projectSlice";
 import { INVITATION_API_END_POINT } from "@/utils/constant";
+import { setLoading } from "@/redux/invitationSlice";
 
 const useGetSentInvitations = () => {
   const dispatch = useDispatch();
-  const { allSentInvitations } = useSelector((store) => store.project);
+
   useEffect(() => {
     const fetchSentInvitations = async () => {
       try {
+        dispatch(setLoading(true));
         const res = await axios.get(`${INVITATION_API_END_POINT}/get`, {
           withCredentials: true,
         });
@@ -19,6 +21,8 @@ const useGetSentInvitations = () => {
         }
       } catch (error) {
         console.log(error);
+      } finally {
+        dispatch(setLoading(false)); 
       }
     };
     fetchSentInvitations();

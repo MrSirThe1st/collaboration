@@ -107,7 +107,7 @@ export const updateTaskStatus = async (req, res) => {
     task.status = status;
     await task.save();
 
-    // Update milestone progress if task is associated with one
+
     if (task.milestone) {
       await Milestone.updateMilestoneProgress(task.milestone);
     }
@@ -292,6 +292,75 @@ export const assignTask = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error",
+    });
+  }
+};
+
+
+export const editTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      title,
+      description,
+      priority,
+      status,
+      dueDate,
+      milestoneId,
+      assignedRole,
+    } = req.body;
+
+    // Find the task
+    const task = await Task.findById(id);
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
+    }
+
+    // Check if milestone is being changed
+    if (
+      milestoneId !== undefined &&
+      task.milestone?.toString() !== milestoneId
+    ) {
+      const oldMilestoneId = task.milestone;
+      task.milestone = milestoneId || null;
+
+      // Update milestone progress
+      if (oldMilestoneId) {
+        await Milestone.updateMilestoneProgress(oldMilestoneId);
+      }
+      if (milestoneId) {
+        await Milestone.updateMilestoneProgress(milestoneId);
+      }
+    }
+
+    // Update task fields
+    if (title) task.title = title;
+    if (description !== undefined) task.description = description;
+    if (status) task.status = status;
+    if (priority) task.priority = priority;
+    if (dueDate) task.dueDate = dueDate;
+    if (assignedRole) task.assignedRole = assignedRole;
+
+    await task.save();
+
+    // Return updated task with populated fields
+    const updatedTask = await Task.findById(id)
+      .populate("milestone", "title progress")
+      .populate("assignees.user", "username email profile");
+
+    return res.status(200).json({
+      success: true,
+      task: updatedTask,
+    });
+  } catch (error) {
+    console.error("Task edit error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
     });
   }
 };

@@ -19,6 +19,9 @@ const projectSchema = new mongoose.Schema(
     logo: {
       type: String,
     },
+    cover: {
+      type: String,
+    },
     members: [
       {
         user: {
@@ -70,12 +73,33 @@ const projectSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: [
-        "Web Development",
-        "Mobile Development",
-        "UI/UX Design",
-        "Data Science",
+        "Web Application",
+        "Mobile Application",
+        "Desktop Software",
+        "Video Game",
+        "AI/Machine Learning",
+        "Data Analytics",
+        "IoT & Embedded Systems",
+        "AR/VR Experience",
+        "Blockchain Solution",
+        "E-Commerce Platform",
+        "CRM/ERP System",
+        "API/Backend Service",
+        "Chatbot/Conversational AI",
+        "Cybersecurity Tool",
+        "DevOps Tool",
+        "Educational Software",
+        "Healthcare Solution",
+        "FinTech Application",
+        "Social Platform",
+        "Content Management System",
+        "Productivity Tool",
+        "Multimedia/Entertainment",
+        "SaaS Product",
+        "Research Tool",
+        "Other",
       ],
-      required: true, 
+      required: true,
     },
     socialLinks: {
       instagram: String,
@@ -84,7 +108,16 @@ const projectSchema = new mongoose.Schema(
       github: String,
       website: String,
     },
+    countryRestriction: {
+      isGlobal: { type: Boolean, default: true },
+      country: {
+        code: String,
+        name: String,
+      },
+    },
   },
   { timestamps: true }
 );
+projectSchema.index({ title: 1}, { unique: true });
+
 export const Project = mongoose.model("Project", projectSchema);

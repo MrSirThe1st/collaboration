@@ -32,7 +32,7 @@ export const sendAnnouncement = async (req, res) => {
       type: "announcement",
     });
 
-    await message.populate("sender", "username email profile");
+    await message.populate("sender", "username email profile skills");
 
     return res.status(201).json({
       success: true,
@@ -57,7 +57,7 @@ export const getAnnouncements = async (req, res) => {
       status: "active",
     })
       .sort({ createdAt: -1 })
-      .populate("sender", "username email profile");
+      .populate("sender", "username email profile skills");
 
     return res.status(200).json({
       success: true,

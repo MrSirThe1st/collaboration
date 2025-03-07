@@ -1,33 +1,26 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { DragDropContext, Droppable } from "@hello-pangea/dnd";
-import { Plus } from "lucide-react";
-import {
-  setTasks,
-  updateTasksOrder,
-  addTask,
-} from "@/redux/taskMilestoneSlice";
+import { Plus, Loader } from "lucide-react";
+import { setTasks, addTask } from "@/redux/taskMilestoneSlice";
 import { TASK_API_END_POINT } from "@/utils/constant";
 import TaskCard from "./taskComponents/TaskCard";
 import NewTaskDialog from "./taskComponents/NewTaskDialog";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-const TasksView = () => {
+const TasksView = ({ isMobile }) => {
   const dispatch = useDispatch();
   const { id: projectId } = useParams();
   const [showNewTaskDialog, setShowNewTaskDialog] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const containerClasses = isMobile
+    ? "mobile-specific-classes"
+    : "desktop-specific-classes";
 
   // Get data from Redux store
   const tasks = useSelector((state) => state.taskMilestone.tasks);
@@ -49,23 +42,23 @@ const TasksView = () => {
   });
 
   // Organized tasks by status
-const columns = {
-  todo: {
-    id: "todo",
-    title: "To Do",
-    tasks: tasks.filter((task) => task.status === "todo"),
-  },
-  inProgress: {
-    id: "inProgress",
-    title: "In Progress",
-    tasks: tasks.filter((task) => task.status === "in_progress"),
-  },
-  done: {
-    id: "done",
-    title: "Done",
-    tasks: tasks.filter((task) => task.status === "completed"),
-  },
-};
+  const columns = {
+    todo: {
+      id: "todo",
+      title: "To Do",
+      tasks: tasks.filter((task) => task.status === "todo"),
+    },
+    inProgress: {
+      id: "inProgress",
+      title: "In Progress",
+      tasks: tasks.filter((task) => task.status === "in_progress"),
+    },
+    done: {
+      id: "done",
+      title: "Done",
+      tasks: tasks.filter((task) => task.status === "completed"),
+    },
+  };
 
   // Fetch tasks on component mount
   useEffect(() => {
@@ -210,18 +203,21 @@ const columns = {
         return "bg-gray-500 ring-gray-500/30";
     }
   };
-  console.log("Members data:", members);
+
+  {
+    loading && (
+      <div className="fixed inset-0 flex items-center justify-center bg-background/50 z-50">
+        <Loader className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="h-full">
       {/* Header Section */}
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <p className="text-muted-foreground">
-            {loading ? "Loading tasks..." : `${tasks.length} total tasks`}
-          </p>
-        </div>
+      <div className="mb-4 flex items-center ">
         <div className="flex items-center gap-2">
-          <Select
+          {/* <Select
             value={taskFilters.assignee}
             onValueChange={(value) =>
               dispatch(setTaskFilters({ assignee: value }))
@@ -248,7 +244,7 @@ const columns = {
                   )
               )}
             </SelectContent>
-          </Select>
+          </Select> */}
           <Button
             onClick={() => setShowNewTaskDialog(true)}
             disabled={!canCreateTask}
@@ -266,22 +262,28 @@ const columns = {
       )}
       {/* Task Board */}
       <DragDropContext onDragEnd={onDragEnd}>
+        <div className="text-center py-2 text-xs sm:text-sm text-muted-foreground">
+          drag and drop to update tasks.
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {Object.values(columns).map((column) => (
-            <div key={column.id}>
+            <div key={column.id} className="bg-muted/40 rounded-lg p-4">
+              {" "}
+              {/* Added container styling */}
               <div className="mb-3">
                 <h3 className="font-medium flex items-center gap-2">
                   {column.title}
                   <Badge variant="secondary">{column.tasks.length}</Badge>
                 </h3>
               </div>
-
               <Droppable droppableId={column.id}>
-                {(provided) => (
+                {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className="space-y-2"
+                    className={`space-y-2 min-h-[200px] transition-colors ${
+                      snapshot.isDraggingOver ? "bg-accent/50" : ""
+                    }`}
                   >
                     {column.tasks.map((task, index) => (
                       <TaskCard

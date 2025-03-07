@@ -17,13 +17,41 @@ import Invitations from "./components/Invitations";
 import InvitationsOut from "./components/InvitationsOut";
 import ProjectsRequested from "./components/ProjectsRequested";
 import Workspace from "./components/Workspace";
-import Layout2 from "./components/Layout2";
 import AllInvitations from "./components/AllInvitations";
 import Team from "./components/Team";
 import Inbox from "./components/Inbox";
-
+import EditProject from "./components/admin/EditProject";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import TermsOfService from "./components/TermsOfService";
+import ForgotPassword from "./components/auth/ForgotPassword";
+import ResetPassword from "./components/auth/ResetPassword";
+import LandingPage from "./components/LandingPage";
+import AboutUs from "./components/About";
+import ProfileEdit from "./components/ProfileEdit";
+import Support from "./components/Support";
+import CookieConsent from "./components/CookieConsent";
 
 const appRouter = createBrowserRouter([
+  {
+    path: "/profile/edit",
+    element: (
+      <Layout>
+        <ProfileEdit />
+      </Layout>
+    ),
+  },
+  {
+    path: "/support",
+    element: <Support />,
+  },
+  {
+    path: "/about-us",
+    element: <AboutUs />,
+  },
+  {
+    path: "/landing",
+    element: <LandingPage />,
+  },
   {
     path: "/",
     element: (
@@ -31,6 +59,14 @@ const appRouter = createBrowserRouter([
         <Home />
       </Layout>
     ),
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+  {
+    path: "/reset-password/:token",
+    element: <ResetPassword />,
   },
   {
     path: "/login",
@@ -52,6 +88,14 @@ const appRouter = createBrowserRouter([
       </Layout>
     ),
   },
+  {
+    path: "/privacy-policy",
+    element: <PrivacyPolicy />,
+  },
+  {
+    path: "/terms-of-service",
+    element: <TermsOfService />,
+  },
   // {
   //   path: "/admin/group",
   //   element: <Group />,
@@ -63,6 +107,10 @@ const appRouter = createBrowserRouter([
   {
     path: "/admin/projects/create",
     element: <PostProject />,
+  },
+  {
+    path: "/admin/projects/:id/edit",
+    element: <EditProject />,
   },
   {
     path: "/description/:id",
@@ -171,6 +219,7 @@ function App() {
     <div>
       <SocketContextProvider>
         <RouterProvider router={appRouter} />
+        <CookieConsent />
       </SocketContextProvider>
     </div>
   );

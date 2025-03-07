@@ -58,7 +58,7 @@ const NewTaskDialog = ({
 
           {/* Milestone Selection */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Milestone</Label>
+            <Label className="text-right text-xs sm:text-sm">Milestone</Label>
             <Select
               value={newTask.milestoneId}
               onValueChange={(value) =>
@@ -80,7 +80,7 @@ const NewTaskDialog = ({
 
           {/* Role Assignment */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Assign to</Label>
+            <Label className="text-right text-xs sm:text-sm">Assign</Label>
             <Select
               value={newTask.assignedRole}
               onValueChange={(value) =>
@@ -102,7 +102,7 @@ const NewTaskDialog = ({
 
           {/* Priority Selection */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Priority</Label>
+            <Label className="text-right text-xs sm:text-sm">Priority</Label>
             <Select
               value={newTask.priority}
               onValueChange={(value) =>
@@ -122,7 +122,7 @@ const NewTaskDialog = ({
 
           {/* Due Date */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="dueDate" className="text-right">
+            <Label htmlFor="dueDate" className="text-right text-xs sm:text-sm">
               Due Date
             </Label>
             <Input
@@ -138,7 +138,10 @@ const NewTaskDialog = ({
 
           {/* Description */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right">
+            <Label
+              htmlFor="description"
+              className="text-right text-xs sm:text-sm"
+            >
               Description
             </Label>
             <Textarea

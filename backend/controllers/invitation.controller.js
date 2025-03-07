@@ -1,6 +1,8 @@
 import { Invitation } from "../models/invitation.model.js";
 import { Project } from "../models/project.model.js";
 import { User } from "../models/user.model.js";
+import { Notification } from "../models/notification.model.js";
+import { io } from "../socket/socket.js";
 
 export const createInvitation = async (req, res) => {
   try {
@@ -45,6 +47,21 @@ export const createInvitation = async (req, res) => {
       message: message,
     });
 
+    const inviter = await User.findById(inviterId).select("username");
+
+    const notification = await Notification.create({
+      recipient: recipientId,
+      type: "invitation",
+      title: "New Project Invitation",
+      content: `${inviter.username} invited you to their project`,
+      link: `/allInvitations`,
+      relatedDoc: newInvitation._id,
+      docModel: "Invitation",
+    });
+
+    io.to(`user_${recipientId}`).emit("new_invitation", newInvitation);
+    io.to(`user_${recipientId}`).emit("new_notification", notification);
+
     return res.status(201).json({
       message: "Invitation sent successfully.",
       success: true,
@@ -81,31 +98,41 @@ export const updateInvitationStatus = async (req, res) => {
     const invitationId = req.params.id;
     const userId = req.id;
 
-    if (!["accepted", "rejected"].includes(status)) {
+    if (!["accepted", "declined"].includes(status)) {
       return res
         .status(400)
         .json({ message: "Invalid status.", success: false });
     }
 
     const invitation = await Invitation.findById(invitationId);
-    if (!invitation || invitation.recipient.toString() !== userId) {
+    if (!invitation) {
       return res.status(404).json({
-        message: "Invitation not found or not authorized.",
+        message: "Invitation not found.",
         success: false,
       });
     }
 
-    // Update the status
+    if (invitation.recipient.toString() !== userId) {
+      return res.status(403).json({
+        message: "Not authorized to update this invitation.",
+        success: false,
+      });
+    }
+
     invitation.status = status;
     await invitation.save();
 
     return res.status(200).json({
-      message: "Invitation status updated successfully.",
+      message: `Invitation ${status} successfully.`,
       success: true,
+      invitation,
     });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Server error.", success: false });
+    console.error("Error updating invitation status:", error);
+    res.status(500).json({
+      message: "Server error: " + error.message,
+      success: false,
+    });
   }
 };
 

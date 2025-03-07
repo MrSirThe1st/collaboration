@@ -1,6 +1,5 @@
-import React from "react";
 import { Input } from "./ui/input";
-import { Search } from "lucide-react";
+import { Search, Globe,X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -8,26 +7,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { FILTER_CATEGORIES } from "@/data/categories";
+import { Button } from "./ui/button";
+import { CATEGORIES } from "@/data/categories";
 
 const SearchFilterSection = ({
   onCategoryChange,
   onSearchChange,
   selectedCategory,
   searchQuery,
+  showAvailableOnly,
+  onAvailabilityChange,
 }) => {
+
+  const handleCategoryChange = (value) => {
+    const normalizedValue = value.toLowerCase().trim();
+    onCategoryChange(normalizedValue);
+  };
+
   return (
-    <div className="w-full max-w-7xl mx-auto  mb-8">
-      <div className="flex flex-col sm:flex-row items-center w-full gap-4 max-w-lg  overflow-hidden p-4 ">
-        {/* Category Filter */}
+    <div className="mb-8">
+      <div className="flex flex-col sm:flex-row items-center w-full gap-4 max-w-lg overflow-hidden ">
         <div className="w-full sm:w-auto">
-          <Select value={selectedCategory} onValueChange={onCategoryChange}>
+          <Select value={selectedCategory} onValueChange={handleCategoryChange}>
             <SelectTrigger className="w-full sm:w-[180px] h-9 text-sm rounded-md border border-gray-300">
               <SelectValue placeholder="Select Category" />
             </SelectTrigger>
             <SelectContent>
-              {FILTER_CATEGORIES.map((category) => (
-                <SelectItem key={category.value} value={category.value}>
+              {CATEGORIES.map((category) => (
+                <SelectItem
+                  key={category.value}
+                  value={category.value.toLowerCase()}
+                >
                   {category.label}
                 </SelectItem>
               ))}
@@ -36,16 +46,47 @@ const SearchFilterSection = ({
         </div>
 
         {/* Search Bar */}
-        <div className="relative flex-grow w-full">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            type="search"
-            placeholder="Search projects..."
-            className="w-full h-9 text-sm pl-10 rounded-md border border-gray-300 focus:ring-0 focus:border-gray-400"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
+        <div className="relative flex items-center w-full max-w-md">
+          <div className="relative flex-grow border border-border rounded-l-md">
+            <Input
+              type="search"
+              placeholder="Search projects..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="h-10 border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 pl-3 bg-background"
+              aria-label="Search projects"
+            />
+
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => onSearchChange("")}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+              </button>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            className="h-10 bg-primary text-primary-foreground px-3 rounded-r-md flex items-center justify-center"
+            aria-label="Submit search"
+          >
+            <Search className="h-4 w-4" />
+          </button>
         </div>
+
+        {/* Availability Filter */}
+        <Button
+          variant={showAvailableOnly ? "default" : "outline"}
+          onClick={onAvailabilityChange}
+          className="h-9 px-4 shrink-0"
+        >
+          <Globe className="h-4 w-4 mr-2" />
+          Available
+        </Button>
       </div>
     </div>
   );

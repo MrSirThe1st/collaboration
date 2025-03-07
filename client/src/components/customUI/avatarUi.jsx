@@ -13,9 +13,7 @@ const AvatarUi = ({
   const fileInputRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const togglePopover = () => {
-    setIsOpen(!isOpen);
-  };
+
 
   const handleAvatarClick = () => {
     fileInputRef.current.click();

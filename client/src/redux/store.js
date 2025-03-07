@@ -1,7 +1,6 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import authSlice from "./authSlice";
 import {
-  persistStore,
   persistReducer,
   FLUSH,
   REHYDRATE,
@@ -17,15 +16,15 @@ import invitationSlice from "./invitationSlice";
 import projectSlice from "./projectSlice";
 import channelSlice from "./channelSlice";
 import taskMilestoneSlice from "./taskMilestoneSlice";
-import messageSlice from "./messageSlice";
 import projectMessagesSlice from "./projectMessagesSlice"
 import inboxSlice from "./inboxSlice"
+import notificationSlice from "./notificationSlice";
 
 const persistConfig = {
   key: "root",
   version: 1,
   storage,
-  blacklist: ["project", "group", "messages"],
+  blacklist: ["project", "group", "messages", ],
   // blacklist: ["invitation"],
 };
 
@@ -39,9 +38,13 @@ const rootReducer = combineReducers({
   taskMilestone: taskMilestoneSlice,
   projectMessages: projectMessagesSlice,
   inbox: inboxSlice,
+  notification : notificationSlice,
+  
 });
 
+
 const persistedReducer = persistReducer(persistConfig, rootReducer);
+
 
 const store = configureStore({
   reducer: persistedReducer,

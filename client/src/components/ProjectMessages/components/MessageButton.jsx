@@ -6,12 +6,12 @@ import { setMessages } from "@/redux/inboxSlice";
 import { useDispatch } from "react-redux";
 import { resetInbox } from "@/redux/inboxSlice";
 
-const MessageButton = ({ userId, username, profile }) => {
+const MessageButton = ({ userId, username, profile, profession }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const handleMessageClick = () => {
-    dispatch(resetInbox()); 
+    dispatch(resetInbox());
     navigate("/inbox", {
       state: {
         userId,
@@ -19,6 +19,7 @@ const MessageButton = ({ userId, username, profile }) => {
         profilePhoto: profile?.profilePhoto,
         startChat: true,
         existingChat: false,
+        profession,
       },
     });
   };

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import {
@@ -23,23 +23,19 @@ import {
   Linkedin,
   Mail,
   Briefcase,
-  MapPin,
-  Calendar,
-  User,
-  Bookmark,
-  Clock,
   Globe,
-  
+  Loader,
 } from "lucide-react";
 import useGetAllAdminProjects from "@/hooks/useGetAllAdminProjects";
 import { INVITATION_API_END_POINT } from "@/utils/constant";
 import { toast } from "sonner";
 import MessageButton from "./ProjectMessages/components/MessageButton";
+import Flag from "react-world-flags";
+import UserAvatar from "./customUI/UserAvatar";
 
 const UserDetail = () => {
   const { state } = useLocation();
   const { user } = state;
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [selectedProject, setSelectedProject] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
@@ -47,13 +43,21 @@ const UserDetail = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [availableRoles, setAvailableRoles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const formatRole = (role) => {
-    return role.replace(/["\[\]]/g, "").trim();
+    return role.replace(/["[\]]/g, "").trim();
   };
 
   useGetAllAdminProjects();
   const { allAdminProjects } = useSelector((state) => state.project);
+
+  useEffect(() => {
+    if (allAdminProjects) {
+      setIsLoading(false); 
+    }
+  }, [allAdminProjects]); 
+
   const currentUser = useSelector((state) => state.auth.user);
 
   useEffect(() => {
@@ -66,7 +70,7 @@ const UserDetail = () => {
 
   const handleInvite = async () => {
     if (!selectedProject || !selectedRole || !message) return;
-
+    setIsLoading(true);
     try {
       const response = await axios.post(
         `${INVITATION_API_END_POINT}/create`,
@@ -95,6 +99,8 @@ const UserDetail = () => {
         console.error("Error sending invitation:", error.message);
         toast.error("Network error or server is unavailable");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -114,72 +120,89 @@ const UserDetail = () => {
     navigate("/profile");
   };
 
-  // const handleViewInbox = () => {
-  //   navigate("/inbox", {
-  //     state: {
-  //       userId: user._id,
-  //       username: user.username,
-  //       profilePhoto: user.profile.profilePhoto,
-  //       startChat: true,
-  //       existingChat: false,
-  //     },
-  //   });
-  // };
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className=" min-h-screen">
-      <div className="container mx-auto py-10 px-4">
+    <div className="min-h-screen">
+      <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className=" rounded-2xl shadow-lg overflow-hidden">
-            <div className="h-40 bg-gradient-to-r from-primary/20 to-primary/10" />
-            <div className="px-8 pb-8">
-              <div className="flex flex-col md:flex-row gap-6 items-start relative">
-                <div className="relative -mt-20">
-                  <img
-                    src={user.profile.profilePhoto || "/default-avatar.png"}
-                    alt={user.username}
-                    className="w-32 h-32 rounded-2xl object-cover ring-0  shadow-lg"
-                  />
-                  <span
-                    className={`absolute bottom-2 right-2 w-4 h-4 rounded-full border-2 border-white ${
-                      user.status === "available"
-                        ? "bg-green-500"
-                        : user.status === "busy"
-                        ? "bg-red-500"
-                        : "bg-yellow-500"
-                    }`}
+            {/* Gradient background */}
+            <div className="h-24 sm:h-40 bg-gradient-to-r from-primary/20 to-primary/10 relative overflow-hidden">
+              {/* Flag pattern overlay */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="grid grid-cols-8 sm:grid-cols-12 gap-1 p-1">
+                  {Array(48)
+                    .fill(user.profile?.country?.code)
+                    .map((code, i) => (
+                      <Flag
+                        key={i}
+                        code={code}
+                        className="w-full h-full object-cover "
+                      />
+                    ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="px-4 sm:px-8 pb-8 relative">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start">
+                {/* Profile Image */}
+                <div className="relative -mt-12 sm:-mt-20 shrink-0">
+                  <UserAvatar
+                    user={user}
+                    className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl object-cover shadow-lg"
+                    showStatus
                   />
                 </div>
 
-                <div className="flex-1 pt-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h1 className="text-xl font-bold">{user.username}</h1>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Briefcase className="w-4 h-4" />
+                {/* User Info */}
+                <div className="flex-1 w-full">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-4 py-2">
+                    <div className="flex-1">
+                      <h1 className="text-lg sm:text-xl font-bold">
+                        {user.username}
+                      </h1>
+                      <div className="flex items-center gap-2 mt-1 text-sm">
+                        <Briefcase className="w-4 h-4 shrink-0" />
                         <span>{user.profession}</span>
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Clock className="w-4 h-4" />
+                      {/* <div className="flex items-center gap-2 mt-1 text-sm">
+                        <Clock className="w-4 h-4 shrink-0" />
                         <span>Status: {user.status}</span>
                       </div>
+                      {user.profile?.country && (
+                        <div className="flex items-center gap-2 mt-1 text-sm">
+                          <Flag
+                            code={user.profile.country.code}
+                            className="h-4 w-6 object-cover"
+                          />
+                          <span>{user.profile.country.name}</span>
+                        </div>
+                      )} */}
                     </div>
 
-                    <div className="flex gap-2">
-                      {currentUser && user._id === currentUser._id ? (
-                        <Button onClick={handleViewInbox}>Edit Profile</Button>
-                      ) : (
+                    {/* Action Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      {!(currentUser && user._id === currentUser._id) && (
                         <MessageButton
+                          className="w-full sm:w-auto"
                           userId={user._id}
                           username={user.username}
-                          profile={user.profile} 
+                          profile={user.profile}
                         />
                       )}
-                    </div>
-
-                    <div>
                       {currentUser && user._id === currentUser._id ? (
-                        <Button onClick={handleViewProfile}>
+                        <Button
+                          className="w-full sm:w-auto"
+                          onClick={handleViewProfile}
+                        >
                           Edit Profile
                         </Button>
                       ) : (
@@ -188,11 +211,15 @@ const UserDetail = () => {
                           onOpenChange={setIsDialogOpen}
                         >
                           <DialogTrigger asChild>
-                            <Button variant="secondary" size="sm">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="w-full sm:w-auto"
+                            >
                               Invite to Project
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="sm:max-w-[425px]">
+                          <DialogContent className="w-[95%] max-w-[425px]">
                             <DialogHeader>
                               <DialogTitle>
                                 {currentStep === 1
@@ -205,29 +232,54 @@ const UserDetail = () => {
                             <div className="mt-4">
                               {currentStep === 1 ? (
                                 <>
-                                  <Select onValueChange={setSelectedProject}>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select a project" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {allAdminProjects?.map((project) => (
-                                        <SelectItem
-                                          key={project._id}
-                                          value={project._id}
+                                  {allAdminProjects?.length === 0 ? (
+                                    <div className="text-center py-6">
+                                      <h3 className="font-medium text-lg mb-2">
+                                        No Projects Available
+                                      </h3>
+                                      <p className="text-muted-foreground text-sm mb-4">
+                                        You need to create a project before you
+                                        can invite team members.
+                                      </p>
+                                      <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                          setIsDialogOpen(false);
+                                          navigate("/admin/projects/create");
+                                        }}
+                                      >
+                                        Create Your First Project
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <Select
+                                        onValueChange={setSelectedProject}
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select a project" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {allAdminProjects?.map((project) => (
+                                            <SelectItem
+                                              key={project._id}
+                                              value={project._id}
+                                            >
+                                              {project.title}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                      <div className="mt-4 flex justify-end">
+                                        <Button
+                                          onClick={handleNextStep}
+                                          disabled={!selectedProject}
                                         >
-                                          {project.title}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <div className="mt-4 flex justify-end">
-                                    <Button
-                                      onClick={handleNextStep}
-                                      disabled={!selectedProject}
-                                    >
-                                      Next
-                                    </Button>
-                                  </div>
+                                          Next
+                                        </Button>
+                                      </div>
+                                    </>
+                                  )}
                                 </>
                               ) : currentStep === 2 ? (
                                 <>
@@ -295,63 +347,77 @@ const UserDetail = () => {
                 </div>
               </div>
 
+              {/* Bio Section */}
               {user.profile.bio && (
-                <div className="mt-6">
-                  <h2 className="text-lg font-semibold mb-2">About</h2>
-                  <p className="text-sm">{user.profile.bio}</p>
+                <div className="mt-4 sm:mt-6">
+                  <h2 className="text-base sm:text-lg font-semibold mb-2">
+                    About
+                  </h2>
+                  <p className="text-xs sm:text-sm">{user.profile.bio}</p>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            <div className=" rounded-xl shadow-lg overflow-hidden p-6 md:col-span-2">
-              <h2 className="text-lg font-semibold mb-4">Skills</h2>
+          {/* Skills and Contact Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-4 sm:mt-6">
+            {/* Skills Section */}
+            <div className=" rounded-xl shadow-lg overflow-hidden p-4 sm:p-6 md:col-span-2">
+              <h2 className="text-base sm:text-lg font-semibold mb-4">
+                Skills
+              </h2>
               <div className="flex flex-wrap gap-2">
                 {user.profile.skills.map((skill, index) => (
-                  <Badge key={index} variant="secondary">
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="text-xs sm:text-sm"
+                  >
                     {skill}
                   </Badge>
                 ))}
               </div>
             </div>
 
-            <div className=" rounded-xl shadow-lg overflow-hidden p-6">
-              <h2 className="text-lg font-semibold mb-4">Contact</h2>
+            {/* Contact Section */}
+            <div className="e rounded-xl shadow-lg overflow-hidden p-4 sm:p-6">
+              <h2 className="text-base sm:text-lg font-semibold mb-4">
+                Contact
+              </h2>
               <div className="space-y-3">
                 <a
                   href={`mailto:${user.email}`}
-                  className="flex items-center gap-3  hover:text-primary transition-colors"
+                  className="flex items-center gap-3 text-sm hover:text-primary transition-colors"
                 >
-                  <Mail className="w-4 h-4" />
-                  <span>Email</span>
+                  <Mail className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Email</span>
                 </a>
                 <a
-                  href={user.profile.linkedin}
+                  href={user.profile.socialLinks.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3  hover:text-primary transition-colors"
+                  className="flex items-center gap-3 text-sm hover:text-primary transition-colors"
                 >
-                  <Linkedin className="w-4 h-4" />
-                  <span>LinkedIn</span>
+                  <Linkedin className="w-4 h-4 shrink-0" />
+                  <span className="truncate">LinkedIn</span>
                 </a>
                 <a
-                  href={user.profile.github}
+                  href={user.profile.socialLinks.github}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3  hover:text-primary transition-colors"
+                  className="flex items-center gap-3 text-sm hover:text-primary transition-colors"
                 >
-                  <Github className="w-4 h-4" />
-                  <span>GitHub</span>
+                  <Github className="w-4 h-4 shrink-0" />
+                  <span className="truncate">GitHub</span>
                 </a>
                 <a
                   href={user.profile.socialLinks.portfolio}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3  hover:text-primary transition-colors"
+                  className="flex items-center gap-3 text-sm hover:text-primary transition-colors"
                 >
-                  <Globe className="w-4 h-4" />
-                  <span>Portfolio</span>
+                  <Globe className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Portfolio</span>
                 </a>
               </div>
             </div>

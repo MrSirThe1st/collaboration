@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { format } from "date-fns";
-import { Hash, Send, Paperclip, Users } from "lucide-react";
+import { Hash, Send, Paperclip, Users, AlertCircle } from "lucide-react";
 import { CHANNEL_API_END_POINT } from "@/utils/constant";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ const RoleBasedChannel = ({ channel }) => {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
-
+  const [canInteract, setCanInteract] = useState(false);
   const user = useSelector((state) => state.auth.user);
   const { socket } = useSocketContext();
   const messagesEndRef = useRef(null);
@@ -26,10 +26,6 @@ const RoleBasedChannel = ({ channel }) => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
-  useEffect(() => {
-    fetchMessages();
-  }, [channel._id]);
 
   useEffect(() => {
     if (!socket) return;
@@ -58,6 +54,7 @@ const RoleBasedChannel = ({ channel }) => {
 
       if (response.data.success) {
         setMessages(response.data.messages);
+        setCanInteract(response.data.canInteract);
         scrollToBottom();
       }
     } catch (error) {
@@ -67,6 +64,10 @@ const RoleBasedChannel = ({ channel }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchMessages();
+  }, [channel._id]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -84,7 +85,10 @@ const RoleBasedChannel = ({ channel }) => {
       );
 
       if (response.data.success) {
+        // Add the new message to local state immediately
+        setMessages((prev) => [...prev, response.data.message]);
         setNewMessage("");
+        scrollToBottom(); // Scroll to show new message
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -132,8 +136,6 @@ const RoleBasedChannel = ({ channel }) => {
       <div className="p-4 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Hash className="h-5 w-5" />
-            <h2 className="font-semibold text-lg">{channel.name}</h2>
             <Badge variant="outline">{channel.role}</Badge>
           </div>
           <div className="flex items-center gap-2">
@@ -143,9 +145,6 @@ const RoleBasedChannel = ({ channel }) => {
             </span>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground mt-1">
-          Private channel for {channel.role} team members
-        </p>
       </div>
 
       <ScrollArea className="flex-1 p-4">
@@ -156,7 +155,7 @@ const RoleBasedChannel = ({ channel }) => {
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
             <p>No messages yet</p>
-            <p className="text-sm">Start the conversation with your team!</p>
+            {canInteract && <p className="text-sm">Start the conversation!</p>}
           </div>
         ) : (
           messages.map((message) => (
@@ -170,31 +169,42 @@ const RoleBasedChannel = ({ channel }) => {
         <div ref={messagesEndRef} />
       </ScrollArea>
 
-      <form onSubmit={handleSendMessage} className="p-4 border-t">
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="shrink-0"
-          >
-            <Paperclip className="h-5 w-5" />
-          </Button>
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder={`Message #${channel.name}`}
-            className="flex-1"
-          />
-          <Button
-            type="submit"
-            className="shrink-0"
-            disabled={sending || !newMessage.trim()}
-          >
-            <Send className="h-5 w-5" />
-          </Button>
+      {canInteract ? (
+        <form onSubmit={handleSendMessage} className="p-4 border-t">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="shrink-0"
+            >
+              <Paperclip className="h-5 w-5" />
+            </Button>
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder={`Message #${channel.name}`}
+              className="flex-1"
+            />
+            <Button
+              type="submit"
+              className="shrink-0"
+              disabled={sending || !newMessage.trim()}
+            >
+              <Send className="h-5 w-5" />
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <div className="p-4 border-t bg-muted/50">
+          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <AlertCircle className="h-4 w-4" />
+            <p>
+              You need the role {channel.role} to send messages in this channel
+            </p>
+          </div>
         </div>
-      </form>
+      )}
     </div>
   );
 };

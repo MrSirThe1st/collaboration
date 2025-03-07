@@ -18,12 +18,12 @@ export const createGroup = async (req, res) => {
     }
 
     let group = await Group.findOne({ name });
-    if (group) {
-      return res.status(400).json({
-        message: "You can't register the same group.",
-        success: false,
-      });
-    }
+    // if (group) {
+    //   return res.status(400).json({
+    //     message: "You can't register the same group.",
+    //     success: false,
+    //   });
+    // }
 
     let cover = null; 
     if (file) {
@@ -76,7 +76,7 @@ export const getGroupById = async (req, res) => {
     const groupId = req.params.id;
     const group = await Group.findById(groupId).populate(
       "members",
-      "username email profession profile.profilePhoto"
+      "username email skills profession profile.profilePhoto"
     );
 
     if (!group) {

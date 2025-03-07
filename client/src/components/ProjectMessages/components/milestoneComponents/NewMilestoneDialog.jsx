@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,10 +17,13 @@ const NewMilestoneDialog = ({
   setNewMilestone,
   handleCreateMilestone,
   loading,
+  isMobile,
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent
+        className={isMobile ? "w-[95vw] max-w-md p-4" : "sm:max-w-[425px]"}
+      >
         <DialogHeader>
           <DialogTitle>Create New Milestone</DialogTitle>
         </DialogHeader>
@@ -63,17 +65,19 @@ const NewMilestoneDialog = ({
             />
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className={isMobile ? "flex-col gap-2" : ""}>
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
+            className={isMobile ? "w-full" : ""}
           >
             Cancel
           </Button>
           <Button
             onClick={handleCreateMilestone}
             disabled={loading || !newMilestone.title || !newMilestone.dueDate}
+            className={isMobile ? "w-full" : ""}
           >
             {loading ? "Creating..." : "Create Milestone"}
           </Button>

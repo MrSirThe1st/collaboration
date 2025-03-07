@@ -7,9 +7,12 @@ const groupSlice = createSlice({
     groups: [],
     members: [],
     searchGroupByText: "",
+    loading: false,
   },
   reducers: {
-    // actions
+    setLoading: (state, action) => {
+      state.loading = action.payload;
+    },
     setSingleGroup: (state, action) => {
       state.singleGroup = action.payload;
     },
@@ -24,6 +27,11 @@ const groupSlice = createSlice({
     },
   },
 });
-export const { setSingleGroup, setGroups, setMembers, setSearchGroupByText } =
-  groupSlice.actions;
+export const {
+  setSingleGroup,
+  setGroups,
+  setMembers,
+  setSearchGroupByText,
+  setLoading,
+} = groupSlice.actions;
 export default groupSlice.reducer;

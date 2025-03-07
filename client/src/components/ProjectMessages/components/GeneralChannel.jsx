@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { format } from "date-fns";
-import { Hash, Send, Paperclip } from "lucide-react";
+import {  Send, Paperclip, Loader } from "lucide-react";
 import { CHANNEL_API_END_POINT } from "@/utils/constant";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import { useSocketContext } from "../../../../context/SocketContext";
 const GeneralChannel = ({ channel }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
   const user = useSelector((state) => state.auth.user);
@@ -47,8 +47,8 @@ const GeneralChannel = ({ channel }) => {
   }, [channel._id, socket]);
 
   const fetchMessages = async () => {
+    setIsLoading(true);
     try {
-      setLoading(true);
       const response = await axios.get(
         `${CHANNEL_API_END_POINT}/messages/${channel._id}`,
         { withCredentials: true }
@@ -62,7 +62,7 @@ const GeneralChannel = ({ channel }) => {
       console.error("Error fetching messages:", error);
       toast.error("Failed to load messages");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -82,11 +82,14 @@ const GeneralChannel = ({ channel }) => {
       );
 
       if (response.data.success) {
+        // Add the new message to local state immediately
+        setMessages((prev) => [...prev, response.data.message]);
         setNewMessage("");
+        scrollToBottom(); // Scroll to show new message
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      toast.error("Failed to send message");
+      toast.error(error.response?.data?.message || "Failed to send message");
     } finally {
       setSending(false);
     }
@@ -124,20 +127,10 @@ const GeneralChannel = ({ channel }) => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b">
-        <div className="flex items-center gap-2">
-          <Hash className="h-5 w-5" />
-          <h2 className="font-semibold text-lg">{channel.name}</h2>
-        </div>
-        <p className="text-sm text-muted-foreground mt-1">
-          General project discussion
-        </p>
-      </div>
-
       <ScrollArea className="flex-1 p-4">
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center h-full">
-            Loading messages...
+            <Loader className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">

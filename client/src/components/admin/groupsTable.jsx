@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Avatar, AvatarImage } from "../ui/avatar";
+import { useEffect, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Edit2, MoreHorizontal, AlertTriangle } from "lucide-react";
+import { Edit2, MoreHorizontal, AlertTriangle, Loader2 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import useGetAllGroups from "@/hooks/useGetAllGroups";
@@ -25,12 +24,14 @@ const GroupsCardLayout = () => {
   const [filterGroup, setFilterGroup] = useState(groups);
   const [groupToDelete, setGroupToDelete] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   const handleGroupDelete = async (group) => {
     try {
+      setIsDeleting(true);
       const response = await axios.delete(
         `${COMPANY_API_END_POINT}/delete/${group._id}`,
         { withCredentials: true }
@@ -44,6 +45,8 @@ const GroupsCardLayout = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to delete group");
+    } finally {
+      setIsDeleting(false); 
     }
   };
   useGetAllGroups();
@@ -79,9 +82,9 @@ const GroupsCardLayout = () => {
                 className="w-full h-full object-cover absolute inset-0"
               />
             ) : (
-              <div className="w-full h-full bg-muted/40 flex items-center justify-center">
-                <span className="text-muted-foreground">
-                  {group.name[0]?.toUpperCase()}
+              <div className="w-full h-full bg-gradient-to-br from-primary/5 to-primary/30 flex items-center justify-center absolute inset-0">
+                <span className="text-3xl font-bold text-primary/40">
+                  {group.name?.slice(0, 2)?.toUpperCase()}
                 </span>
               </div>
             )}
@@ -92,10 +95,7 @@ const GroupsCardLayout = () => {
             <div>
               <p className="text-sm  mb-2">{group.name}</p>
               <p className="text-sm  mb-2">
-                Created At: {group.createdAt.split("T")[0]}
-              </p>
-              <p className="text-sm  mb-4">
-                Status: {group.status || "Active"}
+                Created on: {group.createdAt.split("T")[0]}
               </p>
             </div>
 
@@ -117,7 +117,6 @@ const GroupsCardLayout = () => {
                       <span>Edit</span>
                     </div>
 
-                    {/* Add delete option - only show if user is admin */}
                     {group.userId === user._id && (
                       <div
                         onClick={(e) => {
@@ -146,7 +145,7 @@ const GroupsCardLayout = () => {
               Delete Group
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{groupToDelete?.name}"? This
+              Are you sure you want to delete {groupToDelete?.name}? This
               action cannot be undone. Make sure there are no projects in this
               group.
             </AlertDialogDescription>
@@ -157,14 +156,23 @@ const GroupsCardLayout = () => {
                 setShowDeleteDialog(false);
                 setGroupToDelete(null);
               }}
+              disabled={isDeleting}
             >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => handleGroupDelete(groupToDelete)}
+              disabled={isDeleting} // Disable during deletion
             >
-              Delete Group
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Group"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

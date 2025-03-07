@@ -8,6 +8,7 @@ import {
   deleteTask,
   updateTaskStatus,
   assignTask,
+  editTask
 } from "../controllers/task.controller.js";
 
 const router = express.Router();
@@ -19,5 +20,6 @@ router.route("/update/:id").put(isAuthenticated, updateTask);
 router.route("/delete/:id").delete(isAuthenticated, deleteTask);
 router.route("/status/:id").patch(isAuthenticated, updateTaskStatus);
 router.route("/assign/:id").post(isAuthenticated, assignTask);
+router.route("/edit/:id").put(isAuthenticated, editTask);
 
 export default router;

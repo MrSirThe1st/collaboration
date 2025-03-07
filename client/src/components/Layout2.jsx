@@ -1,4 +1,3 @@
-import React from "react";
 import SidebarWorkspace from "./shared/SideBarWorkspace";
 
 const Layout2 = ({ children }) => {

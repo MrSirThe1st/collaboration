@@ -118,34 +118,24 @@ export const deleteDocumentation = async (req, res) => {
     const { projectId, docId } = req.params;
     const userId = req.id;
 
-    const project = await Project.findById(projectId);
-    if (!project) {
+    const doc = await Documentation.findById(docId);
+    if (!doc) {
       return res.status(404).json({
         success: false,
-        message: "Project not found",
+        message: "Documentation not found",
       });
     }
 
-    // Find and remove the documentation
-    const updatedProject = await Project.findOneAndUpdate(
-      { _id: projectId },
-      {
-        $pull: {
-          documentation: {
-            _id: docId,
-            createdBy: userId, // Ensure only creator can delete
-          },
-        },
-      },
-      { new: true }
-    );
-
-    if (!updatedProject) {
-      return res.status(404).json({
+    // Check if the user is authorized to delete
+    if (doc.createdBy.toString() !== userId) {
+      return res.status(403).json({
         success: false,
-        message: "Documentation not found or unauthorized to delete",
+        message: "Not authorized to delete this documentation",
       });
     }
+
+    // Delete the documentation
+    await Documentation.findByIdAndDelete(docId);
 
     return res.status(200).json({
       success: true,
