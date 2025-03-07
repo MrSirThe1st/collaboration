@@ -145,13 +145,17 @@ export const login = async (req, res) => {
       profile: user.profile,
     };
 
-    return res
+    const cookieOptions = {
+      maxAge: 24 * 60 * 60 * 1000, 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === "production", 
+      sameSite: "strict", 
+      path: "/",
+    };
+
+   return res
       .status(200)
-      .cookie("token", token, {
-        maxAge: 1 * 24 * 60 * 60 * 1000,
-        httpsOnly: true,
-        sameSite: "strict",
-      })
+      .cookie("token", token, cookieOptions)
       .json({
         message: `Welcome back ${user.username}`,
         user,
@@ -159,6 +163,10 @@ export const login = async (req, res) => {
       });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Login failed",
+      success: false,
+    });
   }
 };
 

@@ -21,6 +21,8 @@ import http from "http";
 import { Server } from "socket.io";
 import { setupCors } from "./middlewares/cors.js";
 import { Notification } from "./models/notification.model.js";
+import { generateCsrfToken, verifyCsrfToken } from "./middlewares/csrfProtection.js";
+import { addSecurityHeaders } from "./middlewares/securityHeaders.js";
 
 
 
@@ -111,6 +113,9 @@ app.set("io", io);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(generateCsrfToken);
+app.use(verifyCsrfToken);
+app.use(addSecurityHeaders);
 
 // Setup CORS
 setupCors(app);
