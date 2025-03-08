@@ -23,6 +23,7 @@ import { setupCors } from "./middlewares/cors.js";
 import { Notification } from "./models/notification.model.js";
 import { generateCsrfToken, verifyCsrfToken } from "./middlewares/csrfProtection.js";
 import { addSecurityHeaders } from "./middlewares/securityHeaders.js";
+import { setupSocketIO } from "./socket/socket.js";
 
 
 
@@ -31,17 +32,7 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || [
-      "http://localhost:5174",
-      "http://localhost:5173",
-    ],
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-  pingTimeout: 60000, // Close connection after 60s of inactivity
-});
+const { io } = setupSocketIO(server);
 
 // Map to store user socket IDs
 const userSocketMap = {};

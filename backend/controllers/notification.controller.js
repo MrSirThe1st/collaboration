@@ -1,5 +1,5 @@
 import { Notification } from "../models/notification.model.js";
-import { io } from "../socket/socket.js";
+import { io } from "../index.js";
 
 export const getNotifications = async (req, res) => {
   try {

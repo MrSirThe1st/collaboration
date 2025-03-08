@@ -2,7 +2,7 @@ import { Invitation } from "../models/invitation.model.js";
 import { Project } from "../models/project.model.js";
 import { User } from "../models/user.model.js";
 import { Notification } from "../models/notification.model.js";
-import { io } from "../socket/socket.js";
+import { io } from "../index.js";
 
 export const createInvitation = async (req, res) => {
   try {

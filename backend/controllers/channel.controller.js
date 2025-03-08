@@ -1,7 +1,7 @@
 import { Channel } from "../models/channel.model.js";
 import { Project } from "../models/project.model.js";
 import { ProjectMessage } from "../models/projectMessage.model.js";
-import { io } from "../socket/socket.js";
+import { io } from "../index.js";
 
 export const createChannel = async (req, res) => {
   try {

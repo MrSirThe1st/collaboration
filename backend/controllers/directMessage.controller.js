@@ -2,7 +2,7 @@
 import { DirectMessage } from "../models/directMessage.model.js";
 import { Conversation } from "../models/directMessage.model.js";
 import { User } from "../models/user.model.js";
-import { io } from "../socket/socket.js";
+import { io } from "../index.js";
 import { Notification } from "../models/notification.model.js";
 
 // Send a direct message
