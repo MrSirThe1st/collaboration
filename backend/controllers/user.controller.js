@@ -15,6 +15,7 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import { randomBytes, createHash } from "crypto";
 import sendEmail from "../utils/sendEmail.js";
+import { getCookieOptions } from "../utils/cookieConfig.js";
 
 export const register = async (req, res) => {
   try {
@@ -154,13 +155,13 @@ export const login = async (req, res) => {
     };
 
    return res
-      .status(200)
-      .cookie("token", token, cookieOptions)
-      .json({
-        message: `Welcome back ${user.username}`,
-        user,
-        success: true,
-      });
+     .status(200)
+     .cookie("token", token, getCookieOptions())
+     .json({
+       message: `Welcome back ${user.username}`,
+       user,
+       success: true,
+     });
   } catch (error) {
     console.log(error);
     return res.status(500).json({

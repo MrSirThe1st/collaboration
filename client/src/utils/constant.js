@@ -21,3 +21,11 @@ export const PROFESSION_API_END_POINT = `${API_BASE_URL}/professions`;
 export const SOCKET_URL = import.meta.env.VITE_BACKEND_URL;
 
 export const IS_PRODUCTION = import.meta.env.VITE_ENV === 'production'
+
+export const APP_VERSION = import.meta.env.VITE_APP_VERSION || "1.0.0";
+
+export const FEATURES = {
+  enableNotifications: true,
+  enableRealTimeChat: true,
+  enableAnalytics: IS_PRODUCTION,
+};
