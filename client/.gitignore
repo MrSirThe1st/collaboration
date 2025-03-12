@@ -34,3 +34,4 @@ temp/
 
 # Coverage directory
 coverage/
+.vercel
