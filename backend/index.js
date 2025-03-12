@@ -24,7 +24,7 @@ import { Notification } from "./models/notification.model.js";
 import { generateCsrfToken, verifyCsrfToken } from "./middlewares/csrfProtection.js";
 import { addSecurityHeaders } from "./middlewares/securityHeaders.js";
 import { setupSocketIO } from "./socket/socket.js";
-import { healthRoutes } from "./routes/health.route.js";
+import healthRoutes from "./routes/health.route.js";
 
 
 
