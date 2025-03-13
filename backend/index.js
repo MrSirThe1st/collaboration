@@ -105,10 +105,10 @@ app.set("io", io);
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(generateCsrfToken);
-app.use(verifyCsrfToken);
-app.use(addSecurityHeaders);
+// app.use(cookieParser());
+// app.use(generateCsrfToken);
+// app.use(verifyCsrfToken);
+// app.use(addSecurityHeaders);
 
 // Setup CORS
 setupCors(app);
