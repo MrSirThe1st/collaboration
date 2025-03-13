@@ -4,14 +4,13 @@ import cors from "cors";
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins =
-      process.env.VITE_ENV === "production"
-        ? [process.env.VITE_API_URL]
+      process.env.NODE_ENV === "production"
+        ? ["https://yippieapp.com", "https://www.yippieapp.com"]
         : [
-            process.env.VITE_API_URL,
             "http://localhost:5173",
             "http://localhost:3000",
+            "http://localhost:5174",
           ];
-
 
     if (!origin) {
       return callback(null, true);
@@ -52,7 +51,6 @@ const handleCorsError = (err, req, res, next) => {
 export const setupCors = (app) => {
   app.use(cors(corsOptions));
   app.use(handleCorsError);
-
 
   app.use((req, res, next) => {
     res.header("Access-Control-Allow-Credentials", "true");
