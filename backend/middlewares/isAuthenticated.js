@@ -2,6 +2,12 @@ import jwt from "jsonwebtoken";
 import { AppError, asyncHandler } from "./errorHandler.js";
 
 const isAuthenticated = asyncHandler(async (req, res, next) => {
+  console.log(
+    `Authentication requested for route: ${req.method} ${req.originalUrl}`
+  );
+  console.log(`Headers:`, req.headers);
+  console.log(`Cookies:`, req.cookies);
+  
 
   const token =
     req.cookies.token ||
