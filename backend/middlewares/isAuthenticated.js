@@ -12,6 +12,7 @@ const isAuthenticated = asyncHandler(async (req, res, next) => {
     process.env.VITE_ENV === "development" ||
     process.env.BYPASS_AUTH === "true"
   ) {
+    console.log("Bypassing authentication for development");
     req.id = "tempUserId"; // Set a temporary user ID
     return next();
   }
@@ -23,27 +24,31 @@ const isAuthenticated = asyncHandler(async (req, res, next) => {
       : null);
 
   if (!token) {
+    console.log("No token found in request");
     throw new AppError("Authentication required", 401);
   }
+
   try {
-    // Verify token
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    console.log("Decoded token:", decoded);
 
     if (!decoded || !decoded.userId) {
+      console.log("Invalid token: missing userId");
       throw new AppError("Invalid token", 401);
     }
 
-    // Set user ID for use in controllers
     req.id = decoded.userId;
+    console.log(`Authenticated user ID: ${req.id}`);
 
-    // Check token expiration (additional check)
     const currentTime = Math.floor(Date.now() / 1000);
     if (decoded.exp && decoded.exp < currentTime) {
+      console.log("Token expired");
       throw new AppError("Token expired", 401);
     }
 
     next();
   } catch (error) {
+    console.error("Authentication error:", error);
     if (error.name === "JsonWebTokenError") {
       throw new AppError("Invalid token", 401);
     } else if (error.name === "TokenExpiredError") {
@@ -51,7 +56,6 @@ const isAuthenticated = asyncHandler(async (req, res, next) => {
     } else if (error instanceof AppError) {
       throw error;
     } else {
-      console.error("Authentication error:", error);
       throw new AppError("Authentication failed", 401);
     }
   }
