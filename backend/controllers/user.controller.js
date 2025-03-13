@@ -131,13 +131,14 @@ export const login = async (req, res) => {
         success: false,
       });
     }
-    // check role is correct or not
+
     const tokenData = {
       userId: user._id,
     };
-    const token = await jwt.sign(tokenData, process.env.SECRET_KEY, {
-      expiresIn: "1d",
-    });
+
+     const token = jwt.sign(tokenData, process.env.SECRET_KEY, {
+       expiresIn: "1d",
+     });
 
     user = {
       _id: user._id,
