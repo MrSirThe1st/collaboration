@@ -1,4 +1,6 @@
-// backend/middlewares/cors.js
+import express from "express";
+import cors from "cors";
+
 export const setupCors = (app) => {
   // Add proper origin handling to include www subdomain
   const corsOptions = {
