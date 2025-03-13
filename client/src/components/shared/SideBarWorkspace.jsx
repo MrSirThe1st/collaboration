@@ -1,6 +1,4 @@
-// components/Sidebar.jsx
 import React from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import {
@@ -29,7 +27,6 @@ import {
 } from "../ui/dropdown-menu";
 import {
   Package2,
-  Bell,
   Home,
   ShoppingCart,
   Package,
@@ -61,6 +58,7 @@ const SidebarWorkspace = () => {
         withCredentials: true,
       });
       if (res.data.success) {
+        localStorage.removeItem("token");
         dispatch(setUser(null));
         navigate("/");
       }

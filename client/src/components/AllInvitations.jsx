@@ -6,7 +6,7 @@ import InvitersTable from "./admin/InvitersTable";
 import useGetReceivedInvitations from "@/hooks/useGetReceivedInvitations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { markAllInvitationsAsRead } from "@/redux/invitationSlice";
-import { Send, Inbox, Loader2 } from "lucide-react";
+import { Send, Inbox, Loader } from "lucide-react";
 
 // Empty state for received invitations
 const EmptyReceivedInvitations = () => (
@@ -73,7 +73,7 @@ const AllInvitations = () => {
   if (receivedLoading && sentLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
+        <Loader className="w-8 h-8 animate-spin" />
       </div>
     );
   }

@@ -61,6 +61,7 @@ const Sidebar = () => {
         withCredentials: true,
       });
       if (res.data.success) {
+        localStorage.removeItem("token");
         dispatch(setUser(null));
         navigate("/landing");
       }

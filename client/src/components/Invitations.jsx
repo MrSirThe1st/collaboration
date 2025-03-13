@@ -1,4 +1,3 @@
-import React from 'react'
 import InvitersTable from './admin/InvitersTable';
 import useGetReceivedInvitations from '@/hooks/useGetReceivedInvitations';
 

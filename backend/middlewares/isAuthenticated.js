@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { AppError, asyncHandler } from "./errorHandler.js";
 
 const isAuthenticated = asyncHandler(async (req, res, next) => {
-  // Get token from cookies or authorization header
+
   const token =
     req.cookies.token ||
     (req.headers.authorization && req.headers.authorization.startsWith("Bearer")
@@ -12,7 +12,6 @@ const isAuthenticated = asyncHandler(async (req, res, next) => {
   if (!token) {
     throw new AppError("Authentication required", 401);
   }
-
   try {
     // Verify token
     const decoded = jwt.verify(token, process.env.SECRET_KEY);

@@ -146,20 +146,15 @@ export const login = async (req, res) => {
       profile: user.profile,
     };
 
-    const cookieOptions = {
-      maxAge: 24 * 60 * 60 * 1000, 
-      httpOnly: true, 
-      secure: process.env.NODE_ENV === "production", 
-      sameSite: "strict", 
-      path: "/",
-    };
+     const cookieOptions = getCookieOptions();
 
    return res
      .status(200)
-     .cookie("token", token, getCookieOptions())
+     .cookie("token", token, cookieOptions)
      .json({
        message: `Welcome back ${user.username}`,
        user,
+       token,
        success: true,
      });
   } catch (error) {

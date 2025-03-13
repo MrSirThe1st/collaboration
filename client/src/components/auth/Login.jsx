@@ -44,6 +44,9 @@ const Login = () => {
         withCredentials: true,
       });
       if (res.data.success) {
+        if (res.data.token) {
+          localStorage.setItem("token", res.data.token);
+        }
         dispatch(setUser(res.data.user));
         navigate("/");
       }
