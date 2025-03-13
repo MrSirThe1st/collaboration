@@ -117,27 +117,7 @@ const corsOptions = {
   origin: process.env.CLIENT_URL || "http://yippieapp.com ",
   credentials: true,
 };
-app.use((req, res, next) => {
-  // Allow both your domains
-  const allowedOrigins = ["https://yippieapp.com", "https://www.yippieapp.com"];
-  const origin = req.headers.origin;
-
-  if (allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin);
-  }
-
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-XSRF-TOKEN"
-  );
-  res.header("Access-Control-Allow-Credentials", "true");
-
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
-});
+// app.use(cors(corsOptions));
 
 // API routes
 app.use("/api/v1/user", userRoute);
