@@ -107,21 +107,30 @@ app.set("io", io);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(generateCsrfToken);
-app.use(verifyCsrfToken);
-app.use(addSecurityHeaders);
-
-// Setup CORS
-setupCors(app);
 
 app.use(
   cors({
     origin: ["https://yippieapp.com", "https://www.yippieapp.com"],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+      "X-XSRF-TOKEN",
+    ],
   })
 );
+
+
+// app.use(generateCsrfToken);
+// app.use(verifyCsrfToken);
+app.use(addSecurityHeaders);
+
+// Setup CORS
+
 
 // API routes
 app.use("/api/v1/user", userRoute);

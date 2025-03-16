@@ -28,6 +28,15 @@ export const verifyCsrfToken = (req, res, next) => {
   const csrfCookie = req.cookies["XSRF-TOKEN"];
   const csrfHeader = req.headers["x-xsrf-token"];
 
+  console.log("CSRF Check:", {
+    method: req.method,
+    path: req.path,
+    csrfCookie,
+    csrfHeader,
+    cookiesReceived: req.cookies,
+    headersReceived: req.headers,
+  });
+
   if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
     return res.status(403).json({
       success: false,
