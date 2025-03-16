@@ -25,6 +25,7 @@ import { generateCsrfToken, verifyCsrfToken } from "./middlewares/csrfProtection
 import { addSecurityHeaders } from "./middlewares/securityHeaders.js";
 import { setupSocketIO } from "./socket/socket.js";
 import healthRoutes from "./routes/health.route.js";
+import pingRouter from "./routes/ping.js";
 
 
 
@@ -138,6 +139,7 @@ app.use("/api/v1/direct-messages", directMessageRoutes);
 app.use("/api/v1/notification", notificationRoute);
 app.use("/api/v1/professions", professionRoutes);
 app.use("/api/v1", healthRoutes);
+app.use("/api/v1", pingRouter);
 
 // Start the server
 const PORT = process.env.PORT || 3000;
