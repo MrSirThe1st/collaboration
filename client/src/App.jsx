@@ -30,6 +30,7 @@ import AboutUs from "./components/About";
 import ProfileEdit from "./components/ProfileEdit";
 import Support from "./components/Support";
 import CookieConsent from "./components/CookieConsent";
+import PingTest from "./components/PingTest";
 
 const appRouter = createBrowserRouter([
   {
@@ -39,6 +40,9 @@ const appRouter = createBrowserRouter([
         <ProfileEdit />
       </Layout>
     ),
+  },
+  {
+      element: <PingTest />,
   },
   {
     path: "/support",
