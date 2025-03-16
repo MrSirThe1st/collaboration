@@ -5,10 +5,7 @@ import { Notification } from "../models/notification.model.js";
 export function setupSocketIO(server) {
   const io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || [
-        "http://localhost:5174",
-        "http://localhost:5173",
-      ],
+      origin: ["https://yippieapp.com", "https://www.yippieapp.com"],
       methods: ["GET", "POST"],
       credentials: true,
     },

@@ -42,7 +42,8 @@ const appRouter = createBrowserRouter([
     ),
   },
   {
-      element: <PingTest />,
+    path: "/ping-test",
+    element: <PingTest />,
   },
   {
     path: "/support",

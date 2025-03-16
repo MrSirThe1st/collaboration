@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 
-const allowedOrigins = ["https://yippieapp.com", "https://www.yippieapp.com"];
+const allowedOrigins = ["https://yippieapp.com", "https://www.yippieapp.com",  "https://yippie-0wpy.onrender.com"];
 
 const corsOptions = {
   origin: function (origin, callback) {
