@@ -113,11 +113,14 @@ app.use(addSecurityHeaders);
 // Setup CORS
 setupCors(app);
 
-const corsOptions = {
-  origin: process.env.CLIENT_URL || "http://yippieapp.com ",
-  credentials: true,
-};
-app.use(cors(corsOptions));
+app.use(
+  cors({
+    origin: ["https://yippieapp.com", "https://www.yippieapp.com"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 // API routes
 app.use("/api/v1/user", userRoute);

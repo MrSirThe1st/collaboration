@@ -1,19 +1,14 @@
 import express from "express";
 import cors from "cors";
 
+const allowedOrigins = ["https://yippieapp.com", "https://www.yippieapp.com"];
+
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins =
-      process.env.NODE_ENV === "production"
-        ? ["https://yippieapp.com", "https://www.yippieapp.com"]
-        : [
-            "http://localhost:5173",
-            "http://localhost:3000",
-            "http://localhost:5174",
-          ];
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.log("Blocked origin:", origin); 
       callback(new Error("Not allowed by CORS"));
     }
   },
@@ -27,9 +22,6 @@ const corsOptions = {
     "Origin",
     "X-XSRF-TOKEN",
   ],
-  exposedHeaders: ["Content-Range", "X-Content-Range"],
-  optionsSuccessStatus: 204,
-  maxAge: 600,
 };
 
 const handleCorsError = (err, req, res, next) => {
