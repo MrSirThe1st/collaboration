@@ -3,16 +3,19 @@ export const addSecurityHeaders = (req, res, next) => {
   const cloudinaryDomain = `https://res.cloudinary.com/${process.env.CLOUD_NAME}/`;
 
   // Content Security Policy - fixed version with no line breaks in the header value
-  res.setHeader(
-    "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: " +
-      cloudinaryDomain +
-      " https://res.cloudinary.com; font-src 'self' data: https://cdnjs.cloudflare.com; connect-src 'self' " +
-      process.env.VITE_API_URL +
-      " " +
-      process.env.API_URL +
-      "; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';"
-  );
+ res.setHeader(
+   "Content-Security-Policy",
+   "default-src 'self'; " +
+     "script-src 'self' https://cdnjs.cloudflare.com; " +
+     "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
+     "img-src 'self' data: https://res.cloudinary.com; " +
+     "font-src 'self' data: https://cdnjs.cloudflare.com; " +
+     "connect-src 'self' https://api.yippieapp.com; " + 
+     "frame-src 'none'; " +
+     "object-src 'none'; " +
+     "base-uri 'self'; " +
+     "form-action 'self';"
+ );
 
   // Rest of your headers remain the same
   res.setHeader("X-Content-Type-Options", "nosniff");

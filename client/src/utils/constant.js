@@ -1,5 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL
-
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "https://api.yippieapp.com/api/v1";
 
 export const USER_API_END_POINT = `${API_BASE_URL}/user`;
 export const PROJECT_API_END_POINT = `${API_BASE_URL}/project`;
@@ -17,10 +17,9 @@ export const PROJECT_MESSAGE_API_END_POINT = `${API_BASE_URL}/project-messages`;
 export const NOTIFICATION_API_END_POINT = `${API_BASE_URL}/notification`;
 export const PROFESSION_API_END_POINT = `${API_BASE_URL}/professions`;
 
-
 export const SOCKET_URL = import.meta.env.VITE_BACKEND_URL;
 
-export const IS_PRODUCTION = import.meta.env.VITE_ENV === 'production'
+export const IS_PRODUCTION = import.meta.env.VITE_ENV === "production";
 
 export const APP_VERSION = import.meta.env.VITE_APP_VERSION || "1.0.0";
 
