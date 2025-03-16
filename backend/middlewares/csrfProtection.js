@@ -34,7 +34,7 @@ export const verifyCsrfToken = (req, res, next) => {
     csrfCookie,
     csrfHeader,
     cookiesReceived: req.cookies,
-    headersReceived: req.headers,
+    headersReceived: req.headers
   });
 
   if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {

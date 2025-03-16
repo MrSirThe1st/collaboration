@@ -3,12 +3,12 @@ import cors from "cors";
 
 const allowedOrigins = ["https://yippieapp.com", "https://www.yippieapp.com"];
 
+console.log("Request origin:", origin);
+console.log("Allowed origins:", allowedOrigins);
+
 const corsOptions = {
   origin: function (origin, callback) {
-    console.log("Request origin:", origin);
-    console.log("Allowed origins:", allowedOrigins);
-    
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       console.log("Blocked origin:", origin); 
@@ -39,12 +39,7 @@ const handleCorsError = (err, req, res, next) => {
 };
 
 export const setupCors = (app) => {
-  app.use(
-    cors({
-      origin: true, // Allow all origins temporarily for testing
-      credentials: true,
-    })
-  );
+  app.use(cors(corsOptions));
   app.use(handleCorsError);
 
   app.use((req, res, next) => {
