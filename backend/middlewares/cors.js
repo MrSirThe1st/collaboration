@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 
-const allowedOrigins = ["https://yippieapp.com", "https://www.yippieapp.com",  "https://yippie-0wpy.onrender.com"];
+const allowedOrigins = ["https://yippieapp.com", "https://www.yippieapp.com"];
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -39,7 +39,12 @@ const handleCorsError = (err, req, res, next) => {
 };
 
 export const setupCors = (app) => {
-  app.use(cors(corsOptions));
+  app.use(
+    cors({
+      origin: true, // Allow all origins temporarily for testing
+      credentials: true,
+    })
+  );
   app.use(handleCorsError);
 
   app.use((req, res, next) => {
