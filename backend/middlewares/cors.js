@@ -3,9 +3,6 @@ import cors from "cors";
 
 const allowedOrigins = ["https://yippieapp.com", "https://www.yippieapp.com"];
 
-console.log("Request origin:", origin);
-console.log("Allowed origins:", allowedOrigins);
-
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
