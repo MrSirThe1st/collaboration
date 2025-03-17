@@ -21,13 +21,19 @@ import http from "http";
 import { Server } from "socket.io";
 import { setupCors } from "./middlewares/cors.js";
 import { Notification } from "./models/notification.model.js";
-import { generateCsrfToken, verifyCsrfToken } from "./middlewares/csrfProtection.js";
+import {
+  generateCsrfToken,
+  verifyCsrfToken,
+} from "./middlewares/csrfProtection.js";
 import { addSecurityHeaders } from "./middlewares/securityHeaders.js";
 import { setupSocketIO } from "./socket/socket.js";
 import healthRoutes from "./routes/health.route.js";
 import pingRouter from "./routes/ping.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
-
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -35,7 +41,6 @@ const app = express();
 const server = http.createServer(app);
 
 const { io } = setupSocketIO(server);
-
 
 // Map to store user socket IDs
 const userSocketMap = {};
@@ -124,13 +129,14 @@ app.use(
   })
 );
 
-
 // app.use(generateCsrfToken);
 app.use(verifyCsrfToken);
 app.use(addSecurityHeaders);
 
 // Setup CORS
 
+// Add this before your API routes
+app.use(express.static(path.join(__dirname, "../client/dist")));
 
 // API routes
 app.use("/api/v1/user", userRoute);
@@ -149,6 +155,11 @@ app.use("/api/v1/notification", notificationRoute);
 app.use("/api/v1/professions", professionRoutes);
 app.use("/api/v1", healthRoutes);
 app.use("/api/v1", pingRouter);
+
+// Add this after all your API routes
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+});
 
 // Start the server
 const PORT = process.env.PORT || 3000;
