@@ -43,9 +43,7 @@ const CookieConsent = () => {
           <h3 className="font-semibold mb-2">Cookie Consent</h3>
           <p className="text-sm text-muted-foreground">
             We use cookies to enhance your experience on our website. By
-            continuing to browse, you agree to our use of cookies. You can
-            adjust your cookie preferences or withdraw your consent at any time
-            in your settings.
+            continuing to browse, you agree to our use of cookies. 
           </p>
           <a
             href="/privacy-policy"
