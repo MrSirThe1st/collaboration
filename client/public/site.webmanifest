@@ -27,8 +27,8 @@
       "purpose": "any"
     }
   ],
-  "theme_color": "#fffff",
-  "background_color": "#fffff",
+  "theme_color": "#111827",
+  "background_color": "#111827",
   "display": "standalone",
   "orientation": "portrait",
   "scope": "/",

@@ -94,7 +94,7 @@ const Sidebar = () => {
 
   // Navigation links array for DRY code
   const navLinks = [
-    { path: "/", icon: Earth, label: "Projects" },
+    { path: "/home", icon: Earth, label: "Projects" },
     { path: "/workspace", icon: Hammer, label: "Workspace" },
     { path: "/allInvitations", icon: AtSign, label: "Invitations" },
     { path: "/team", icon: Users, label: "Team" },
