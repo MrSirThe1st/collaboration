@@ -26,6 +26,15 @@ export const verifyCsrfToken = (req, res, next) => {
     return next();
   }
 
+  // Skip CSRF check if using Bearer token authentication
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer ")
+  ) {
+    console.log("Skipping CSRF check for token-based authentication");
+    return next();
+  }
+
   const csrfCookie = req.cookies["XSRF-TOKEN"];
   const csrfHeader = req.headers["x-xsrf-token"];
 
