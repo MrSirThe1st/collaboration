@@ -29,7 +29,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    if (user) navigate("/");
+    if (user) navigate("/home");
   }, [user, navigate]);
 
   const handleChange = (e) => {
