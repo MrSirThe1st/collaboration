@@ -8,7 +8,7 @@ export const generateCsrfToken = (req, res, next) => {
   // Set it in a cookie with proper cross-domain settings
   res.cookie("XSRF-TOKEN", csrfToken, {
     httpOnly: false, // Must be false so JS can read it
-    secure: true, // Required for cross-origin with SameSite=None
+    secure: false, // Required for cross-origin with SameSite=None
     sameSite: "none", // Allow cross-site cookie sharing
     path: "/",
     domain: ".yippieapp.com", // Share with all subdomains
