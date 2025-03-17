@@ -1,4 +1,8 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
 import Home from "./components/Home";
@@ -31,18 +35,38 @@ import ProfileEdit from "./components/ProfileEdit";
 import Support from "./components/Support";
 import CookieConsent from "./components/CookieConsent";
 import PingTest from "./components/PingTest";
+import { useSelector } from "react-redux";
+
+// Custom route component to check authentication
+const ProtectedRoute = ({ children }) => {
+  const { user } = useSelector((store) => store.auth);
+
+  // If user is not authenticated, redirect to landing page
+  if (!user) {
+    return <Navigate to="/landing" replace />;
+  }
+
+  return children;
+};
 
 const appRouter = createBrowserRouter([
   {
+    // Default route redirects to landing for new visitors
+    path: "/",
+    element: <Navigate to="/landing" replace />,
+  },
+  {
     path: "/profile/edit",
     element: (
-      <Layout>
-        <ProfileEdit />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <ProfileEdit />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
-    path: "/ping-test",
+    path: "/ping",
     element: <PingTest />,
   },
   {
@@ -58,11 +82,13 @@ const appRouter = createBrowserRouter([
     element: <LandingPage />,
   },
   {
-    path: "/",
+    path: "/home",
     element: (
-      <Layout>
-        <Home />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <Home />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
@@ -83,14 +109,20 @@ const appRouter = createBrowserRouter([
   },
   {
     path: "/admin/create",
-    element: <GroupCreate />,
+    element: (
+      <ProtectedRoute>
+        <GroupCreate />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/group/:id",
     element: (
-      <Layout>
-        <Group />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <Group />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
@@ -101,21 +133,29 @@ const appRouter = createBrowserRouter([
     path: "/terms-of-service",
     element: <TermsOfService />,
   },
-  // {
-  //   path: "/admin/group",
-  //   element: <Group />,
-  // },
   {
     path: "/profile/:id",
-    element: <GroupSetup />,
+    element: (
+      <ProtectedRoute>
+        <GroupSetup />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/projects/create",
-    element: <PostProject />,
+    element: (
+      <ProtectedRoute>
+        <PostProject />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/projects/:id/edit",
-    element: <EditProject />,
+    element: (
+      <ProtectedRoute>
+        <EditProject />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/description/:id",
@@ -123,99 +163,125 @@ const appRouter = createBrowserRouter([
   },
   {
     path: "/admin/groups/:id",
-    element: <GroupSetup />,
+    element: (
+      <ProtectedRoute>
+        <GroupSetup />
+      </ProtectedRoute>
+    ),
   },
-  // {
-  //   path: "/admin/projects/:id/requesters",
-  //   element: <Requesters />,
-  // },
   {
     path: "/invitations",
     element: (
-      <Layout>
-        <Invitations />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <Invitations />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: "/invitationsOut",
     element: (
-      <Layout>
-        <InvitationsOut />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <InvitationsOut />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: "/allInvitations",
     element: (
-      <Layout>
-        <AllInvitations />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <AllInvitations />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: "/profile",
     element: (
-      <Layout>
-        <Profile />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <Profile />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: "/projectsRequested",
     element: (
-      <Layout>
-        <ProjectsRequested />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <ProjectsRequested />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: "/workspace",
     element: (
-      <Layout>
-        <Workspace />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <Workspace />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: "/team",
     element: (
-      <Layout>
-        <Team />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <Team />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: "/inbox",
     element: (
-      <Layout>
-        <Inbox />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <Inbox />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: "/profession/:profession",
-    element: <Category />,
+    element: (
+      <ProtectedRoute>
+        <Category />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/user/:id",
     element: (
-      <Layout>
-        <UserDetail />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <UserDetail />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
-  // {
-  //   path: "/projects/:id/requesters",
-  //   element: <Requesters />,
-  // },
   {
     path: "/admin/projects/:id/page",
-    element: <ProjectPage />,
+    element: (
+      <ProtectedRoute>
+        <ProjectPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/projects/:id",
-    element: <ProjectPage />,
+    element: (
+      <ProtectedRoute>
+        <ProjectPage />
+      </ProtectedRoute>
+    ),
   },
 ]);
 

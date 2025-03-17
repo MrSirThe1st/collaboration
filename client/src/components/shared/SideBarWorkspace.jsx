@@ -45,9 +45,9 @@ const SidebarWorkspace = () => {
 
   const handleMenuSelect = (value) => {
     if (value === "top") {
-      navigate("/invitationsOut"); // Navigate to "Invitations Sent"
+      navigate("/invitationsOut"); 
     } else if (value === "bottom") {
-      navigate("/invitations"); // Navigate to "Invitations"
+      navigate("/invitations"); 
     }
     setPosition(value);
   };

@@ -9,7 +9,7 @@ export const generateCsrfToken = (req, res, next) => {
   res.cookie("XSRF-TOKEN", csrfToken, {
     httpOnly: false, // Readable by client-side JS
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "none",
     path: "/",
   });
 
