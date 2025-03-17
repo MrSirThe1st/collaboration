@@ -126,7 +126,7 @@ app.use(
 
 
 // app.use(generateCsrfToken);
-// app.use(verifyCsrfToken);
+app.use(verifyCsrfToken);
 app.use(addSecurityHeaders);
 
 // Setup CORS

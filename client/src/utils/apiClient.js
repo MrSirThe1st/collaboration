@@ -1,8 +1,8 @@
 import axios from "axios";
 import { toast } from "sonner";
-// import { API_BASE_URL } from "./constant";
 
-const API_BASE_URL = import.meta.env.API_BASE_URL;
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "https://api.yippieapp.com/api/v1";
 
 // Create axios instance with default configs
 const apiClient = axios.create({
