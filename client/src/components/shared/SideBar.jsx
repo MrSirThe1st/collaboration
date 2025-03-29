@@ -119,7 +119,7 @@ const Sidebar = () => {
           <div className="flex flex-col items-start gap-4">
             <div className="flex items-center w-full justify-between">
               <Link
-                to="/"
+                to="/home"
                 className={`${isCollapsed ? "w-10 h-10" : "w-32 h-8"}`}
               >
                 {isCollapsed ? (

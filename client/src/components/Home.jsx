@@ -14,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 import {
   Pagination,
@@ -37,6 +38,8 @@ const Home = () => {
   const { user } = useSelector((store) => store.auth);
   const navigate = useNavigate();
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
+  const PROFILE_REMINDER_KEY = "profile_reminder_dismissed";
+  const REMINDER_DELAY_DAYS = 3;
 
   // State for profile completion dialog
   const [showProfileDialog, setShowProfileDialog] = useState(false);
@@ -52,8 +55,7 @@ const Home = () => {
   const isProfileComplete = useMemo(
     () => (user) => {
       return Boolean(
-          user.profile?.skills?.length > 0 &&
-          user.profile?.country?.code
+        user.profile?.skills?.length > 0 && user.profile?.country?.code
       );
     },
     []
@@ -109,17 +111,39 @@ const Home = () => {
     setCurrentPage(1);
   }, [selectedCategory, searchQuery, showAvailableOnly]);
 
-  // Profile completion check
   useEffect(() => {
-    // Check after a short delay to ensure page is loaded properly
     const timer = setTimeout(() => {
       if (user && !isProfileComplete(user)) {
-        setShowProfileDialog(true);
+        const lastDismissed = localStorage.getItem(PROFILE_REMINDER_KEY);
+
+        if (lastDismissed) {
+          const dismissDate = new Date(parseInt(lastDismissed));
+          const currentDate = new Date();
+          const daysSinceDismiss = Math.floor(
+            (currentDate - dismissDate) / (1000 * 60 * 60 * 24)
+          );
+
+          if (daysSinceDismiss >= REMINDER_DELAY_DAYS) {
+            setShowProfileDialog(true);
+          }
+        } else {
+          setShowProfileDialog(true);
+        }
       }
     }, 1000);
 
     return () => clearTimeout(timer);
   }, [user, isProfileComplete]);
+
+  const handleRemindLater = () => {
+    localStorage.setItem(PROFILE_REMINDER_KEY, Date.now().toString());
+    setShowProfileDialog(false);
+  };
+
+  const handleDontShowAgain = () => {
+    localStorage.setItem(PROFILE_REMINDER_KEY, "never");
+    setShowProfileDialog(false);
+  };
 
   const handleCompleteProfile = () => {
     setShowProfileDialog(false);
@@ -127,12 +151,11 @@ const Home = () => {
   };
 
   const generatePaginationItems = () => {
- 
     if (totalPages <= 7) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
 
-    let pages = [1]; 
+    let pages = [1];
 
     const windowStart = Math.max(2, currentPage - 1);
     const windowEnd = Math.min(totalPages - 1, currentPage + 1);
@@ -221,8 +244,6 @@ const Home = () => {
               </PaginationItem>
             </PaginationContent>
           </Pagination>
-
-
         </div>
       )}
 
@@ -235,10 +256,7 @@ const Home = () => {
               Complete Your Profile
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2 text-sm sm:text-base">
-              <p>
-                Adding more information such as your skills will help
-                you:
-              </p>
+              <p>Adding more information such as your skills will help you:</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Get matched with the right projects</li>
                 <li>Connect with team members who share your skills</li>
@@ -246,16 +264,28 @@ const Home = () => {
               </ul>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col sm:flex-row-reverse gap-2 sm:gap-0 mt-4 sm:mt-0">
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0 mt-4 sm:mt-0">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+              <AlertDialogCancel
+                onClick={handleRemindLater}
+                className="w-full sm:w-auto py-2.5 text-sm"
+              >
+                Remind Me Later
+              </AlertDialogCancel>
+              <Button
+                variant="ghost"
+                onClick={handleDontShowAgain}
+                className="text-muted-foreground text-xs sm:text-sm w-full sm:w-auto"
+              >
+                Don't Show Again
+              </Button>
+            </div>
             <AlertDialogAction
               onClick={handleCompleteProfile}
               className="bg-primary hover:bg-primary/90 w-full sm:w-auto py-2.5 text-sm"
             >
               Complete Profile Now
             </AlertDialogAction>
-            <AlertDialogCancel className="w-full sm:w-auto py-2.5 text-sm">
-              Remind Me Later
-            </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

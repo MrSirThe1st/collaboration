@@ -113,7 +113,7 @@ const LatestProjectCards = ({ project }) => {
     <div
       onClick={() => navigate(`/description/${project._id}`)}
       className={cn(
-        "w-64 rounded-lg overflow-hidden shadow-md bg-white cursor-pointer hover:shadow-xl transition-all duration-300",
+        "w-full rounded-lg overflow-hidden shadow-md bg-white cursor-pointer hover:shadow-xl transition-all duration-300",
         isExpanded ? "h-auto" : "h-[245px]"
       )}
     >

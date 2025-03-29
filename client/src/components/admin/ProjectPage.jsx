@@ -194,7 +194,7 @@ const ProjectPage = () => {
         className={cn(
           isMobile
             ? "h-auto border-b w-full"
-            : "hidden lg:flex lg:flex-col lg:w-64 border-r shrink-0"
+            : "hidden lg:flex lg:flex-col lg:w-full border-r shrink-0"
         )}
       >
         {/* Project Header */}

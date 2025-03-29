@@ -59,7 +59,7 @@ const Signup = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (user) navigate("/");
+    if (user) navigate("/home");
   }, [user, navigate]);
 
   // Clean up object URL when component unmounts or preview changes
