@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../utils/constants.js";
+// import { JWT_SECRET } from "../utils/constants.js";
 import { User } from "../models/user.model.js";
+
+import.meta.env.SECRET_KEY;
 
 const isAuthenticated = async (req, res, next) => {
   try {
@@ -16,7 +18,7 @@ const isAuthenticated = async (req, res, next) => {
     }
 
     // Verify token
-    const decoded = await jwt.verify(token, JWT_SECRET);
+    const decoded = await jwt.verify(token, SECRET_KEY);
 
     if (!decoded) {
       return res.status(401).json({
