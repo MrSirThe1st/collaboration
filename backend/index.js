@@ -124,10 +124,29 @@ app.use(
       "X-Requested-With",
       "Accept",
       "Origin",
-      "X-XSRF-TOKEN",
+      // "X-XSRF-TOKEN",
     ],
   })
 );
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  next();
+});
 
 setupCors(app);
 app.use(generateCsrfToken);
@@ -136,7 +155,6 @@ app.use(generateCsrfToken);
 
 
 
-app.use(express.static(path.join(__dirname, "../client/dist")));
 
 // API routes
 app.use("/api/v1/user", userRoute);
