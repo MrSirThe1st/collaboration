@@ -129,13 +129,13 @@ app.use(
   })
 );
 
+setupCors(app);
 app.use(generateCsrfToken);
 app.use(verifyCsrfToken);
 app.use(addSecurityHeaders);
 
-// Setup CORS
 
-// Add this before your API routes
+
 app.use(express.static(path.join(__dirname, "../client/dist")));
 
 // API routes
