@@ -130,7 +130,7 @@ app.use(
 );
 
 setupCors(app);
-// app.use(generateCsrfToken);
+app.use(generateCsrfToken);
 // app.use(verifyCsrfToken);
 // app.use(addSecurityHeaders);
 
