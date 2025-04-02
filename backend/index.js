@@ -130,9 +130,9 @@ app.use(
 );
 
 setupCors(app);
-app.use(generateCsrfToken);
-app.use(verifyCsrfToken);
-app.use(addSecurityHeaders);
+// app.use(generateCsrfToken);
+// app.use(verifyCsrfToken);
+// app.use(addSecurityHeaders);
 
 
 
@@ -157,6 +157,9 @@ app.use("/api/v1", healthRoutes);
 app.use("/api/v1", pingRouter);
 
 // Add this after all your API routes
+app.use(express.static(path.join(__dirname, "../client/dist")));
+
+
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/dist/index.html"));
 });

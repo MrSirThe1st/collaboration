@@ -1,13 +1,8 @@
-export const addSecurityHeaders = (req, res, next) => {
-  if (req.path.startsWith("/api/")) {
-    res.setHeader(
-      "Cache-Control",
-      "no-store, no-cache, must-revalidate, proxy-revalidate"
-    );
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
-    res.setHeader("Surrogate-Control", "no-store");
-  }
+// middlewares/securityHeaders.js - Disabled version
 
+export const addSecurityHeaders = (req, res, next) => {
+  // No security headers will be added
+
+  // Simply pass through all requests
   next();
 };
