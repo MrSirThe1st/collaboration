@@ -1,64 +1,66 @@
 import jwt from "jsonwebtoken";
-import { AppError, asyncHandler } from "./errorHandler.js";
+import { JWT_SECRET } from "../utils/constants.js";
+import { User } from "../models/user.model.js";
 
-const isAuthenticated = asyncHandler(async (req, res, next) => {
-  console.log(
-    `Authentication requested for route: ${req.method} ${req.originalUrl}`
-  );
-  console.log(`Headers:`, req.headers);
-  console.log(`Cookies:`, req.cookies);
-
-  if (
-    process.env.VITE_ENV === "development" ||
-    process.env.BYPASS_AUTH === "true"
-  ) {
-    console.log("Bypassing authentication for development");
-    req.id = "tempUserId"; // Set a temporary user ID
-    return next();
-  }
-
-  const token =
-    req.cookies.token ||
-    (req.headers.authorization && req.headers.authorization.startsWith("Bearer")
-      ? req.headers.authorization.split(" ")[1]
-      : null);
-
-  if (!token) {
-    console.log("No token found in request");
-    throw new AppError("Authentication required", 401);
-  }
-
+const isAuthenticated = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);
-    console.log("Decoded token:", decoded);
+    // Get token from cookie
+    const token = req.cookies.token;
 
-    if (!decoded || !decoded.userId) {
-      console.log("Invalid token: missing userId");
-      throw new AppError("Invalid token", 401);
+    // Check if token exists
+    if (!token) {
+      return res.status(401).json({
+        message: "Not authenticated - no token",
+        success: false,
+      });
     }
 
+    // Verify token
+    const decoded = await jwt.verify(token, JWT_SECRET);
+
+    if (!decoded) {
+      return res.status(401).json({
+        message: "Invalid token",
+        success: false,
+      });
+    }
+
+    // Check if user still exists
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(401).json({
+        message: "The user belonging to this token no longer exists",
+        success: false,
+      });
+    }
+
+    // Add user ID to request
     req.id = decoded.userId;
-    console.log(`Authenticated user ID: ${req.id}`);
-
-    const currentTime = Math.floor(Date.now() / 1000);
-    if (decoded.exp && decoded.exp < currentTime) {
-      console.log("Token expired");
-      throw new AppError("Token expired", 401);
-    }
+    req.user = user; // Optional: Add the full user object
 
     next();
   } catch (error) {
-    console.error("Authentication error:", error);
+    console.error("Auth middleware error:", error);
+
     if (error.name === "JsonWebTokenError") {
-      throw new AppError("Invalid token", 401);
-    } else if (error.name === "TokenExpiredError") {
-      throw new AppError("Token expired", 401);
-    } else if (error instanceof AppError) {
-      throw error;
-    } else {
-      throw new AppError("Authentication failed", 401);
+      return res.status(401).json({
+        message: "Invalid token",
+        success: false,
+      });
     }
+
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        message: "Token expired",
+        success: false,
+      });
+    }
+
+    return res.status(401).json({
+      message: "Authentication failed",
+      success: false,
+    });
   }
-});
+};
 
 export default isAuthenticated;
