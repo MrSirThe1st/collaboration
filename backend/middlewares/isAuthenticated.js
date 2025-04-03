@@ -13,7 +13,7 @@ const isAuthenticated = asyncHandler(async (req, res, next) => {
     process.env.BYPASS_AUTH === "true"
   ) {
     console.log("Bypassing authentication for development");
-    req.id = "tempUserId"; // Set a temporary user ID
+    req.id = "tempUserId";
     return next();
   }
 
