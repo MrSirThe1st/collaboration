@@ -1,51 +1,64 @@
 import jwt from "jsonwebtoken";
-import { User } from "../models/user.model.js";
+import { AppError, asyncHandler } from "./errorHandler.js";
 
-const isAuthenticated = async (req, res, next) => {
+const isAuthenticated = asyncHandler(async (req, res, next) => {
+  console.log(
+    `Authentication requested for route: ${req.method} ${req.originalUrl}`
+  );
+  console.log(`Headers:`, req.headers);
+  console.log(`Cookies:`, req.cookies);
+
+  if (
+    process.env.VITE_ENV === "development" ||
+    process.env.BYPASS_AUTH === "true"
+  ) {
+    console.log("Bypassing authentication for development");
+    req.id = "tempUserId"; // Set a temporary user ID
+    return next();
+  }
+
+  const token =
+    req.cookies.token ||
+    (req.headers.authorization && req.headers.authorization.startsWith("Bearer")
+      ? req.headers.authorization.split(" ")[1]
+      : null);
+
+  if (!token) {
+    console.log("No token found in request");
+    throw new AppError("Authentication required", 401);
+  }
+
   try {
-    // Get token from cookie or Authorization header
-    const token =
-      req.cookies.token || req.header("Authorization")?.replace("Bearer ", "");
-
-    if (!token) {
-      return res.status(401).json({
-        message: "Please authenticate to access this resource",
-        success: false,
-      });
-    }
-
-    // Verify token
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    console.log("Decoded token:", decoded);
 
-    // Check if user still exists
-    const user = await User.findById(decoded.userId).select("-password"); // Exclude password
-    if (!user) {
-      return res.status(401).json({
-        message: "The user belonging to this token no longer exists",
-        success: false,
-      });
+    if (!decoded || !decoded.userId) {
+      console.log("Invalid token: missing userId");
+      throw new AppError("Invalid token", 401);
     }
 
-    // Attach user to request
-    req.user = user;
-    req.id = user._id;
+    req.id = decoded.userId;
+    console.log(`Authenticated user ID: ${req.id}`);
+
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (decoded.exp && decoded.exp < currentTime) {
+      console.log("Token expired");
+      throw new AppError("Token expired", 401);
+    }
 
     next();
   } catch (error) {
     console.error("Authentication error:", error);
-
-    let message = "Authentication failed";
     if (error.name === "JsonWebTokenError") {
-      message = "Invalid token";
+      throw new AppError("Invalid token", 401);
     } else if (error.name === "TokenExpiredError") {
-      message = "Token expired. Please log in again";
+      throw new AppError("Token expired", 401);
+    } else if (error instanceof AppError) {
+      throw error;
+    } else {
+      throw new AppError("Authentication failed", 401);
     }
-
-    return res.status(401).json({
-      message,
-      success: false,
-    });
   }
-};
+});
 
 export default isAuthenticated;
